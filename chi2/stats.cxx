@@ -52,16 +52,16 @@ double getEvents(CL_input input, double events[][4])
  		while (pch != NULL)
 		{
 			if(n==1){	//printf("%.7g, ",strtof(pch,NULL));
-					events[m][0] = strtof(pch,NULL);	 
+					events[m][0] = strtof(pch,NULL);	//E_sum 
 				}
 			if(n==2){	//printf("%.7g, ",strtof(pch,NULL));
-					events[m][1] = strtof(pch,NULL);	 
+					events[m][1] = strtof(pch,NULL);	//Th_sum
 				}
 			if(n==3){	//printf("%.7g\n",strtof(pch,NULL));
-					events[m][2] = strtof(pch,NULL);	 
+					events[m][2] = strtof(pch,NULL);	//AngSep
 				}
 			if(n==4){	//printf("%.7g\n",strtof(pch,NULL));
-					events[m][3] = strtof(pch,NULL);	 
+					events[m][3] = strtof(pch,NULL);	//E_sterile
 				}
 
 			pch = strtok(NULL," \t");
@@ -104,9 +104,9 @@ double applyObservableCuts(CL_input input, double events[][4])
 
 	for (i=0;i<=NUMEVENTS-1;i++)
 	{ 
-		if(events[i][0]>ECut)	
+		if(events[i][0]>ECut) //E_sum > ECut	
 		{ 
-			if(events[i][1]<thCut)
+			if(events[i][2]<thCut) // Ang.Sep. < thCut
 			{ 	
 				for(m=0;m<4;m++){goodEvents[good][m]=events[i][m];} 
 				good++;

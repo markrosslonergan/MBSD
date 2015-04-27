@@ -227,7 +227,7 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 			//These lines account for containment effects.
 			prob = decayProb(in,chiU,events[i][3]);
 			eGram[EtoBin(events[i][0])] += prob;
-			cosGram[CostoBin(events[i][2])] += prob;
+			cosGram[CostoBin(cos((M_PI/180.0)*events[i][1]))] += prob;
 //			
 			total+=1.0;
 			probTotal+=prob;

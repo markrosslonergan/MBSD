@@ -85,7 +85,7 @@ struct PDF_CHOICE choose_from_pdf(gsl_rng * r,double mS, double mZprime, double 
 
 //	printf("I succeeded!\n");
 
-	printf("%.5lf %.5lf %.5lf %.5lf\n",x,y,z,pdf(x,y,mS,mZprime,NULL));
+	//printf("%.5lf %.5lf %.5lf %.5lf\n",x,y,z,pdf(x,y,mS,mZprime,NULL));
 	struct PDF_CHOICE package;
 	package.Enu = mS*x/2.0;
 	package.cosThnu = y;
