@@ -3,23 +3,23 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <string.h>
 #include <unistd.h>
 
-#include <Minuit2/MnUserParameters.h>
+/*#include <Minuit2/MnUserParameters.h>
 #include <Minuit2/MnUserParameterState.h>
 #include <Minuit2/FunctionMinimum.h>
 #include <Minuit2/MnMigrad.h>
 #include <Minuit2/MnPrint.h>
 #include <Minuit2/VariableMetricMinimizer.h>
+*/
 
 #include "LR.h"
 
 #define SIG_ON 1.0
 #define SIG_OFF 0.0
 
-using namespace ROOT::Minuit2;
-
-double getEvents(CL_input input, double events[][4])
+double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 {
 	double mS = input.mS;
 	double mZprime = input.mZprime;
@@ -63,6 +63,13 @@ double getEvents(CL_input input, double events[][4])
 			if(n==4){	//printf("%.7g\n",strtof(pch,NULL));
 					events[m][3] = strtof(pch,NULL);	//E_sterile
 				}
+			if(n==6){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][4] = strtof(pch,NULL);	//E_high
+				}
+			if(n==8){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][5] = strtof(pch,NULL);	//E_low
+				}
+
 
 			pch = strtok(NULL," \t");
 			n++;	
@@ -78,7 +85,7 @@ double getEvents(CL_input input, double events[][4])
 return 0;
 }
 
-int wipeEventArray(double events[][4])
+int wipeEventArray(double events[][NUM_EVENT_OBS])
 {
 	int i;
 	for (i=0;i<=NUMEVENTS-1;i++)
@@ -87,85 +94,44 @@ int wipeEventArray(double events[][4])
 		events[i][1]=0.0;
 		events[i][2]=0.0;
 		events[i][3]=0.0;
+		events[i][4]=0.0;
+		events[i][5]=0.0;
 	}
 return 0;
 }
 
-double applyObservableCuts(CL_input input, double events[][4])
+double applyObservableCuts(CL_input input, double events[][NUM_EVENT_OBS])
 {
 	double ECut = input.eCut;
+	double EFloor = input.eFloor;
+	double ERatio = input.eRatio;
 	double thCut = input.thCut;
 
 	int i,m;
 	int good=0;
 
-	double goodEvents[NUMEVENTS][4];
-	wipeEventArray(goodEvents);
-
 	for (i=0;i<=NUMEVENTS-1;i++)
 	{ 
-		if(events[i][0]>ECut) //E_sum > ECut	
+		//For each event; if (cuts are passed) {leave event as is}; else { wipe event };
+		if(events[i][0]>ECut && events[i][2] < thCut) //E_sum > ECut AND AngSep < thCut
 		{ 
-			if(events[i][2]<thCut) // Ang.Sep. < thCut
-			{ 	
-				for(m=0;m<4;m++){goodEvents[good][m]=events[i][m];} 
-				good++;
-			}
+			good++;
 		}
-	}
-
-	for(i=0;i<=NUMEVENTS-1;i++)
-	{
-		for(m=0;m<4;m++){events[i][m]=goodEvents[i][m];} 
+		else if (events[i][6]<ERatio*events[i][5] && events[i][6]< EFloor)
+		{
+			good++;
+		}
+		else
+		{
+			for(m=0;m<NUM_EVENT_OBS;m++){events[i][m]=0.0;} 
+		}
 	}
 
 return ((double)good)/((double)NUMEVENTS);
 }
 
 
-double exclude_point(CL_input in, double sigma_s)
-{
-	double events[NUMEVENTS][4];
-	wipeEventArray(events); //wipe the array.
-	getEvents(in,events); // populates event array. 
-
-	double cutEfficiency = applyObservableCuts(in,events); //applys cuts; post-cut events have lots of blank slots.
-
-	double min_signal = 1e5;
-	double min_background_only = 1e5;
-
-	{
-		MnUserParameters upar;
-
-		upar.Add("mS",in.mS);
-		upar.Add("mZprime",in.mZprime);
-		upar.Add("logchiU",-4.0,0.1,-7.0,-1.0);
-		upar.Add("zeta_b",0.0,0.05,-2.0,2.0);
-		upar.Add("sigma_s",sigma_s);
-		upar.Add("cutEff",cutEfficiency);
-
-		E_log_likelihood fcn(events);
-
-		MnMigrad migrad(fcn,upar);
-
-		migrad.Fix("mS");
-		migrad.Fix("mZprime");
-		migrad.Fix("logchiU");
-//		migrad.Fix("zeta_b");
-		migrad.Fix("sigma_s");
-		migrad.Fix("cutEff");
-	
-		FunctionMinimum min = migrad();
-
-		min_signal = min.Fval();
-
-		std::cout<<min.Fval()<<std::endl;
-
-	}
-
-return min_signal;
-}
-double plot_minimization_spectrum(CL_input in, double cutEfficiency, double events[NUMEVENTS][4])
+double plot_minimization_spectrum(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {
 	double zeta_b = 0.0;
 	double sigma_s = 1.0;
@@ -370,7 +336,7 @@ return 0.0;
 }
 
 
-double fit_E_spectrum(CL_input in, double cutEfficiency, double events[NUMEVENTS][4])
+double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {
 	double zeta_b = 0.0;
 	double sigma_s = 1.0;
@@ -718,6 +684,8 @@ int main(int argc, char * argv[])
 	static CL_input in;
 	in.eCut = 0.0;
 	in.thCut = 180.0;
+	in.eFloor = 0.0; // I believe 0.0 for Floor and Ratio mean that the cut is never passed.
+	in.eRatio = 0.0;
 	double chiU = 1e-10;
 
 	int c;
@@ -726,7 +694,7 @@ int main(int argc, char * argv[])
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "m:Z:X:c:PFEA")) != -1)
+	while ((c = getopt (argc, argv, "m:Z:X:c:PFERA")) != -1)
    	{ 
 	switch (c)
       	{
@@ -739,6 +707,10 @@ int main(int argc, char * argv[])
       		case 'c':
         		in.eCut = 0.14;
         		in.thCut = strtof(optarg,NULL);
+        		break;
+      		case 'R':
+        		in.eFloor = 0.1; //100 MeV
+        		in.eRatio = 0.1; // Lowest is less than 10% of Highest
         		break;
       		case 'X':
         		chiU = strtof(optarg,NULL);
@@ -768,17 +740,16 @@ int main(int argc, char * argv[])
 	if(printFlag==1)
 	{ 	
 		if(!modeFlag){	
-		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n",in.mS, in.mZprime, in.eCut, in.thCut);
+		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n",in.mS, in.mZprime, in.eCut, in.thCut, in.eFloor, in.eRatio);
 		}
 		else 
 		{
-		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# chiU = %.5g\n",in.mS, in.mZprime, in.eCut, in.thCut,chiU);
+		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n# chiU = %.5g\n",in.mS, in.mZprime, in.eCut, in.thCut,in.eFloor,in.eRatio,chiU);
 		}
 	}
 
-
 	//Set up an empty event array and populate it from the decay files.
-	static double events[NUMEVENTS][4];
+	static double events[NUMEVENTS][NUM_EVENT_OBS];
 	wipeEventArray(events); //wipe the array.
 	getEvents(in,events); // populates event array. 
 
@@ -814,8 +785,8 @@ int main(int argc, char * argv[])
 		else { std::cout<<"BAD THING!"<<std::endl; }
 	}
 	else 
-	{ 
-		fit_E_spectrum(in,cutEfficiency,events);
+	{
+		fit_spectra(in,cutEfficiency,events);
 	}
 
 return 0;

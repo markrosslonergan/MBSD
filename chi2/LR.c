@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "LR.h"
-#include "Minuit2/FCNBase.h"
+//#include "Minuit2/FCNBase.h"
 
 double getTotalNumEvents(CL_input input)
 {
@@ -62,92 +62,6 @@ fclose(ptr_file);
 return totNum;
 }
 
-double ROOT::Minuit2::E_log_likelihood::operator()(const std::vector<double>& p) const
-	{
-		CL_input in;
-		in.mS = p[0];
-		in.mZprime = p[1];
-		double logchiU = p[2];
-		double chiU = pow(10.0,logchiU);
-		double zeta_b = p[3];
-		double sigma_s = p[4];
-		double cutEff = p[5];
-
-//		std::cout<<p[0]<<" "<<p[1]<<" "<<p[2]<<" "<<p[3]<<" "<<p[4]<<" "<<p[5]<<std::endl;
-
-		double N=0.0;
-		double lambda=0.0;
-		double sum=0.0;
-
-		double eGram[EBINS];
-		double cosGram[COSBINS];
-
-		double O[EBINS];
-		double B[EBINS];
-
-		//Ebinlow(GeV) 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9
-		O[0] =  204.0;
-		O[1] = 280.0; 
-		O[2] = 214.0; 
-		O[3] = 99.0; 
-		O[4] = 83.0; 
-		O[5] = 59.0; 
-		O[6] = 51.0; 
-		O[7] = 33.0; 
-		O[8] = 37.0; 
-		O[9] = 23.0; 	
-		O[10] = 19.0;
- 		O[11] = 21.0; 
-		O[12] = 12.0; 
-		O[13] = 16.0; 		
-		O[14] = 4.0; 
-		O[15] = 9.0; 
-		O[16] = 4.0; 
-		O[17] = 7.0; 
-		O[18] = 3.0;
-
-		B[0] = 151.5;
-		B[1] = 218.8;
-		B[2] = 155.6;
-		B[3] = 108.7;
-		B[4] = 72.5;
-		B[5] = 57.6;
-		B[6] = 45;
-		B[7] = 38.5;
-		B[8] = 31.4;
-		B[9] = 22.2;
-		B[10] = 20.4;
-		B[11] = 17.2;
-		B[12] = 14.1;
-		B[13] = 10.2;
-		B[14] = 9.1;
-		B[15] = 8.2;
-		B[16] = 5.6;
-		B[17] = 5.7;
-		B[18] = 2.9;
-		
-
-		histogrammer(in,chiU,cutEff,events,eGram,cosGram);
-
-		int bin = 0;
-		if (sigma_s > 1e-5){
-			for(bin=0;bin<EBINS;bin++)
-			{
-				lambda = sigma_s*eGram[bin] + (1.0+zeta_b)*B[bin];
-				N = O[bin]; //MB has seen O[] events.
-				
-			//	sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
-				sum+= (lambda-N)*(lambda-N)/lambda;
-			}
-		}
-
-		//a guesstimate of the systematic error on the background.
-		double sigma_zeta = 0.05;
-		// add prior on zeta.
-		sum += pow((zeta_b/sigma_zeta),2.0);
-		return sum;
-	}
-
 int EtoBin(double E)
 {
 	return floor(E/0.1);
@@ -198,7 +112,7 @@ double decayProb(CL_input input, double chiU, double Es)
 return 1.0-exp(-(0.51e16)*prefac*func*L*mS/Es);
 } 
 
-double histogrammer(CL_input in, double chiU, double cutEff, const double events[][4], double eGram[], double cosGram[])
+double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[])
 {
 	double finalScale = getTotalNumEvents(in);
 
