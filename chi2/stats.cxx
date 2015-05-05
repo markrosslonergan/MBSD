@@ -119,6 +119,7 @@ double applyObservableCuts(CL_input input, double events[][NUM_EVENT_OBS])
 		}
 		else if (events[i][6]<ERatio*events[i][5] && events[i][6]< EFloor)
 		{
+			std::cout<<"Ratio!"<<std::endl;
 			good++;
 		}
 		else
@@ -694,7 +695,7 @@ int main(int argc, char * argv[])
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "m:Z:X:c:PFERA")) != -1)
+	while ((c = getopt (argc, argv, "m:Z:X:c:PFEROA")) != -1)
    	{ 
 	switch (c)
       	{
@@ -727,9 +728,12 @@ int main(int argc, char * argv[])
     		case 'F':
         		modeFlag = 3;
 			break;
+    		case 'O':
+        		modeFlag = 4;
+			break;
       		case '?':
 			printf("Abandon hope all ye who enter this value: %c\n",optopt);
-			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)\tprints the (E)nergy or (A)ngular spectrum.\n");
+			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)\tprints the (E)nergy or (A)ngular spectrum.\n\t-O\tprints the cut efficiency.\n");
                   	return 1;
       		default:
 			printf("I don't know how you got here.\n");
@@ -780,6 +784,10 @@ int main(int argc, char * argv[])
 		else if(modeFlag == 3)
 		{ 
 			plot_minimization_spectrum(in,cutEfficiency,events);
+		}
+		else if(modeFlag == 4)
+		{ 
+			std::cout<<in.mS<<" "<<in.mZprime<<" "<<cutEfficiency<<std::endl;
 		}
 
 		else { std::cout<<"BAD THING!"<<std::endl; }
