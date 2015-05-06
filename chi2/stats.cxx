@@ -66,10 +66,12 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 			if(n==6){	//printf("%.7g\n",strtof(pch,NULL));
 					events[m][4] = strtof(pch,NULL);	//E_high
 				}
+			if(n==7){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][6] = strtof(pch,NULL);	//E_low
+				}
 			if(n==8){	//printf("%.7g\n",strtof(pch,NULL));
 					events[m][5] = strtof(pch,NULL);	//E_low
 				}
-
 
 			pch = strtok(NULL," \t");
 			n++;	
@@ -112,17 +114,24 @@ double applyObservableCuts(CL_input input, double events[][NUM_EVENT_OBS])
 
 	for (i=0;i<=NUMEVENTS-1;i++)
 	{ 
-		//For each event; if (cuts are passed) {leave event as is}; else { wipe event };
-		if(events[i][0]>ECut && events[i][2] < thCut) //E_sum > ECut AND AngSep < thCut
-		{ 
-			good++;
-		}
-		else if (events[i][6]<ERatio*events[i][5] && events[i][6]< EFloor)
+		//For each event; does it pass cuts? If so, make sure E_sum is deposited energy and Th_sum is emission angle.
+		if(events[i][0]>ECut) //Total deposited energy is greater than threshold: E_sum > ECut.
 		{
-			std::cout<<"Ratio!"<<std::endl;
-			good++;
+			if(events[i][2] < thCut) //AngSep < thCut
+			{ 
+				good++;
+			}
+			else if (events[i][5]<ERatio*events[i][4] && events[i][5]< EFloor) //Energy asymmetry cut
+			{
+				events[i][1] = events[i][6];
+				good++;
+			}
+			else // wipe event
+			{
+				for(m=0;m<NUM_EVENT_OBS;m++){events[i][m]=0.0;} 
+			}
 		}
-		else
+		else // wipe event
 		{
 			for(m=0;m<NUM_EVENT_OBS;m++){events[i][m]=0.0;} 
 		}

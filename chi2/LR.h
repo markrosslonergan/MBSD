@@ -8,7 +8,7 @@
 #include <string>
 
 #define NUMEVENTS 200000
-#define NUM_EVENT_OBS 6 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low
+#define NUM_EVENT_OBS 7 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
 
 #define EBINS 19
 #define COSBINS 10
