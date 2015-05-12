@@ -27,5 +27,8 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 int printEGram(double eGram[]);
 int printCosGram(double cosGram[]);
 
+double boundU( double ms);
+double boundChi(double ms);
+
 #endif
 
