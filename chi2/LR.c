@@ -168,4 +168,38 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 return probTotal/total;
 }
 
+double boundU( double ms){
+        double peakB=1;
+        double fit1 = -1.7969808082063344*pow(10,-8); 
+        double fit2 = 0.6078622816783561;
+        
+
+        if(ms < 0.003){
+                peakB = 0.3*exp(-3000*ms);
+        } else if (ms>=0.003 && ms<=0.03){
+                peakB = 5*pow(10,-5)*exp(-100*ms)+fit1;
+        } else if (ms>0.03){
+               peakB = pow(10,-5)*exp(-30*ms)*fit2;
+        }              
+
+
+return sqrt(peakB);
+}
+
+double boundChi(double mz){
+        double babarB=1;
+        
+        if(mz<0.25){
+                babarB=-0.001*0.9987312619554833*pow(mz - 0.1,0.284) + 0.001;
+        } else if(mz>=0.25 && mz<0.52){
+                babarB=0.000392*exp(mz*mz);
+        } else if(mz>=0.52){
+                babarB=0.0012*pow(mz,1.3) + pow(8.671375207584429,-7);
+        }
+
+return babarB;
+
+}
+
+
 
