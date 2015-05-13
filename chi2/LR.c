@@ -202,4 +202,9 @@ return babarB;
 }
 
 
+double boundChiU(double ms, double mz)
+{
+return boundChi(mz)*boundU(ms);
+}
+
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir data/angle5.0_noRatio_bound
-FILENAME=data/angle5.0_noRatio_bound/bestfit.dat
+mkdir data/angle20.0_Ratio_bound
+FILENAME=data/angle20.0_Ratio_bound/bestfit.dat
 
 echo > "$FILENAME"
 
@@ -20,7 +20,7 @@ do
 	if [ `echo "$ms < $mZ" | bc -l` -eq 1 ];
 	then 
 		echo $ms $mZ
-		./stats -m $ms -Z $mZ -c 5.0 -P >> "$FILENAME"
+		./stats -m $ms -Z $mZ -c 20.0 -R -P >> "$FILENAME"
 			
 	fi
 #fi

@@ -6,14 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/*#include <Minuit2/MnUserParameters.h>
-#include <Minuit2/MnUserParameterState.h>
-#include <Minuit2/FunctionMinimum.h>
-#include <Minuit2/MnMigrad.h>
-#include <Minuit2/MnPrint.h>
-#include <Minuit2/VariableMetricMinimizer.h>
-*/
-
 #include "LR.h"
 
 #define SIG_ON 1.0
@@ -485,7 +477,7 @@ double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][N
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	while(E_sum < 80 && A_sum < 80)
+	while(E_sum < 80 && A_sum < 80 && logchiU < 0.5*log(boundChiU(temp_mS,temp_mZprime))/log(10.0)) /* 0.5 for square-root */
 	{
 
 		in.mS = temp_mS;
@@ -742,7 +734,7 @@ int main(int argc, char * argv[])
 			break;
       		case '?':
 			printf("Abandon hope all ye who enter this value: %c\n",optopt);
-			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)\tprints the (E)nergy or (A)ngular spectrum.\n\t-O\tprints the cut efficiency.\n");
+			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)\tprints the (E)nergy or (A)ngular spectrum.\n\t-F\tprints mimima\n\t-R\tturns on energy asymmetry cut\n\t-O\tprints the cut efficiency.\n");
                   	return 1;
       		default:
 			printf("I don't know how you got here.\n");

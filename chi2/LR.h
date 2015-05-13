@@ -29,6 +29,7 @@ int printCosGram(double cosGram[]);
 
 double boundU( double ms);
 double boundChi(double ms);
+double boundChiU(double ms, double mz);
 
 #endif
 
