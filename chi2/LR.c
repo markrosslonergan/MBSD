@@ -4,6 +4,9 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <nlopt.hpp>
+#include <iomanip>
+
 
 #include "LR.h"
 //#include "Minuit2/FCNBase.h"
@@ -198,7 +201,83 @@ double boundChi(double mz){
         }
 
 return babarB;
+}
 
+double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data){
+        
+        nuisStruct *d = reinterpret_cast<nuisStruct*>(my_data);
+        std::vector<double > eGram = d->egram;
+        double sigma_zeta = d->Sigma_Zeta;
+
+
+        double zeta_b = x[0];
+                                 //{204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3}
+        std::vector<double > eO = {204.0, 280.0,214.0, 99.0, 83.0, 59.0, 51.0, 33.0, 37.0, 23.0, 19.0, 21.0, 12.0, 16.0, 4.0, 9.0, 4.0, 7.0, 3.0};
+        std::vector<double > eB = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9};
+
+        double temp_sig=0,temp_bg=0,lambda=0,N=0, E_N_events=0,E_N_sig_events=0,E_N_bg_events= 0,E_sum = 0;
+        double sigma_s = 1.0;
+        int bin = 0;
+        for(bin=0;bin<EBINS;bin++)
+                        {
+                                temp_sig = sigma_s*eGram[bin];
+                                temp_bg = (1.0+zeta_b)*eB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = eO[bin]; //MB has seen O[] events.
+                                
+                                E_N_events += lambda;
+                                E_N_sig_events += temp_sig;
+                                E_N_bg_events += temp_bg;
+                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+                                E_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+                //              std::cout<<E_sum<<std::endl;
+                        }
+        E_sum+= pow((zeta_b/sigma_zeta),2.0);
+        //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
+
+return E_sum;
+}
+
+
+double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data){
+        
+        nuisStruct *d = reinterpret_cast<nuisStruct*>(my_data);
+        std::vector<double > cosGram = d->egram;
+        std::vector<double > postGram(COSBINS,0);
+
+        double sigma_zeta = d->Sigma_Zeta;
+        double RunSigma = 1;
+        //if(sigma_zeta == 0){RunSigma =0;};
+
+
+        double zeta_b = x[0];
+        
+        std::vector<double > aO = {22,34,43,41,60,87,90,139,237,429};
+        std::vector<double > aB = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390};
+
+        double temp_sig=0,temp_bg=0,lambda=0,N=0, A_N_events=0,A_N_sig_events=0,A_N_bg_events= 0,A_sum = 0;
+        double sigma_s = 1.0;
+        int bin = 0;
+        for(bin=0;bin<COSBINS;bin++)
+                        {
+                                temp_sig = sigma_s*cosGram[bin];
+                                temp_bg = (1.0+zeta_b)*aB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = aO[bin]; //MB has seen O[] events.
+                                
+                                A_N_events += lambda;
+                                A_N_sig_events += temp_sig;
+                                A_N_bg_events += temp_bg;
+                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+                                A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+                                postGram[bin]=lambda;
+                //              std::cout<<E_sum<<std::endl;
+                        }
+        A_sum+= RunSigma*pow((zeta_b/sigma_zeta),2.0);
+        //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
+        //d->egram = postGram;
+
+return A_sum;
 }
 
 
@@ -207,4 +286,35 @@ double boundChiU(double ms, double mz)
 return boundChi(mz)*boundU(ms);
 }
 
+double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram, int whi, double SIGMAZETA){
+        
+        nuisStruct ddata = {(*eVGram),SIGMAZETA};
+
+        nlopt::opt full(nlopt::LN_COBYLA,1);
+        
+        //full.set_maxeval(200000);
+        full.set_xtol_abs(1e-5);
+        full.set_lower_bounds(-1);
+        full.set_upper_bounds(1);
+        std::vector<double > xtem = {0.01};
+        double ctem;
+        if(whi==0){ 
+                full.set_min_objective(nuisFuncE, &ddata);
+        } else if(whi==1){
+                full.set_min_objective(nuisFuncA,&ddata);
+        }
+
+
+        
+        //std::cout<<"Starting GLOBAL_FULL"<<std::endl;
+        nlopt::result result = full.optimize(xtem, ctem);
+        //std::cout<<"Minimized GLOBAL_FULL"<<std::endl;
+        //std::cout<<"GLOBAl_FULL: found minimum at "<<xtem[0]<<" and thats "<<ctem<<std::endl;
+
+        (*bf_zeta_b)=xtem;
+        (*chi)=ctem;
+        (*eVGram) = ddata.egram;
+
+return 0;
+}
 
