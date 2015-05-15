@@ -31,7 +31,7 @@ double boundU( double ms);
 double boundChi(double ms);
 double boundChiU(double ms, double mz);
 
-typedef struct {std::vector<double >  egram; double Sigma_Zeta; double test; } nuisStruct;
+typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
