@@ -13,7 +13,7 @@
 #define EBINS 19
 #define COSBINS 10
 
-typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio; } CL_input;
+typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; } CL_input;
 
 double getTotalNumEvents(CL_input in);
 
@@ -30,6 +30,12 @@ int printCosGram(double cosGram[]);
 double boundU( double ms);
 double boundChi(double ms);
 double boundChiU(double ms, double mz);
+
+typedef struct {std::vector<double >  egram; double Sigma_Zeta; double test; } nuisStruct;
+double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
+double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
+double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
+
 
 #endif
 
