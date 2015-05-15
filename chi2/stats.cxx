@@ -475,7 +475,7 @@ double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][N
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	while(E_sum < 80 && A_sum < 80 && logchiU < 0.5*log(boundChiU(temp_mS,temp_mZprime))/log(10.0)) /* 0.5 for square-root */
+	while(E_sum < 80 && A_sum < 80 && logchiU < log(boundU(temp_mS)*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	{
 
 		in.mS = temp_mS;
@@ -839,19 +839,19 @@ double stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVE
         std::vector<double > EBF_bkg_only_zeta_b = {0};
         double EBF_bkg_only_chi = 10000;
         nuisMarginalize(& EBF_bkg_only_zeta_b,&EBF_bkg_only_chi, &eZeros,0, sigma_zeta);
-        std::cout<<" Energy sigma_zeta Bf: "<< EBF_bkg_only_zeta_b[0]<<" BF Chi: "<<EBF_bkg_only_chi<<std::endl;
+        std::cout<<"# Energy sigma_zeta Bf: "<< EBF_bkg_only_zeta_b[0]<<" BF Chi: "<<EBF_bkg_only_chi<<std::endl;
 
         std::vector<double > aZeros(COSBINS, 0.0);
         std::vector<double > ABF_bkg_only_zeta_b = {0};
         double ABF_bkg_only_chi = 10000;
         nuisMarginalize(& ABF_bkg_only_zeta_b,&ABF_bkg_only_chi, &aZeros,1,sigma_zeta);
-        std::cout<<" Angle sigma_zeta Bf: "<<ABF_bkg_only_zeta_b[0]<<" BFChi: "<<ABF_bkg_only_chi<<std::endl;
+        std::cout<<"# Angle sigma_zeta Bf: "<<ABF_bkg_only_zeta_b[0]<<" BFChi: "<<ABF_bkg_only_chi<<std::endl;
 
 
 //#########################################################################
 
 	logchiU=logchiU_start;
-	while(E_sum < 80 && A_sum < 80)
+	while(E_sum < 80 && A_sum < 80 && logchiU < log(boundU(temp_mS)*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	{
 
 		in.mS = temp_mS;
