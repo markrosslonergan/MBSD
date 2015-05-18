@@ -205,11 +205,13 @@ return babarB;
 
 double boundUtau(double ms){
 
-	return  5.684603155097915*exp(-224.36106435213696*ms) +0.1538995418716346*exp(-62.349043302533644*ms)+ 0.0005635403465693567*exp(-6.096293940788484*ms);
+	double result= 5.684603155097915*exp(-224.36106435213696*ms) +0.1538995418716346*exp(-62.349043302533644*ms)+ 0.0005635403465693567*exp(-6.096293940788484*ms);
+	if(ms<0.001, result = 1);
+	return sqrt(result);
 }
 
 
-}
+
 
 
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data){
