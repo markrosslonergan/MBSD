@@ -475,7 +475,8 @@ double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][N
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	while(E_sum < 80 && A_sum < 80 && logchiU < log(boundU(temp_mS)*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
@@ -851,7 +852,8 @@ double stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVE
 //#########################################################################
 
 	logchiU=logchiU_start;
-	while(E_sum < 80 && A_sum < 80 && logchiU < log(boundU(temp_mS)*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
@@ -1086,6 +1088,7 @@ int main(int argc, char * argv[])
 	int c;
 	int printFlag = 0;
 	int modeFlag = 0;
+	int statsFlag = 0;
 
 	opterr = 0;
 
@@ -1127,7 +1130,7 @@ int main(int argc, char * argv[])
         		modeFlag = 4;
 			break;
 		case 'S':
-                        modeFlag = 5;
+                        statsFlag = 1;
 			in.Sigma_Zeta =  strtof(optarg,NULL);
 			break;
       		case '?':
@@ -1142,8 +1145,11 @@ int main(int argc, char * argv[])
 	//If option -P is given, we print the input information.		
 	if(printFlag==1)
 	{ 	
-		if(!modeFlag){	
-		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n",in.mS, in.mZprime, in.eCut, in.thCut, in.eFloor, in.eRatio);
+		if(!modeFlag){
+			if(!statsFlag){
+				printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n",in.mS, in.mZprime, in.eCut, in.thCut, in.eFloor, in.eRatio);}
+			else{
+				printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n# sigma_zeta = %.5lf\n",in.mS, in.mZprime, in.eCut, in.thCut, in.eFloor, in.eRatio, in.Sigma_Zeta);}
 		}
 		else 
 		{
@@ -1188,34 +1194,19 @@ int main(int argc, char * argv[])
 		{ 
 			std::cout<<in.mS<<" "<<in.mZprime<<" "<<cutEfficiency<<std::endl;
 		}
-		else if(modeFlag == 5)
-		{
-			stats_fit_spectra(in,cutEfficiency,events);
-			 //              About 2% sigma_zeta seems to get a 3 sigma significance (aim for 65.15-56.15=9)
-                /*std::vector<double > eZeros(EBINS, 0.0);
-                std::vector<double > EBF_bkg_only_zeta_b = {0};
-                double EBF_bkg_only_chi = 10000;
-                marginalize(& EBF_bkg_only_zeta_b,&EBF_bkg_only_chi, &eZeros,0,in.Sigma_Zeta);
-                std::cout<<" Energy sigma_zeta Bf: "<< EBF_bkg_only_zeta_b[0]<<" BF Chi: "<<EBF_bkg_only_chi<<std::endl;
-                */
-
-                //              About 2.5%  also seems to get a 3 sigma significance (aim for 36.4-27.45=9)
-                /*std::vector<double > aZeros(COSBINS, 0.0);
-                std::vector<double > ABF_bkg_only_zeta_b = {0};
-                double ABF_bkg_only_chi = 10000;
-                marginalize(& ABF_bkg_only_zeta_b,&ABF_bkg_only_chi, &aZeros,1,in.Sigma_Zeta);
-                std::cout<<" Angle sigma_zeta Bf: "<<ABF_bkg_only_zeta_b[0]<<" BFChi: "<<ABF_bkg_only_chi<<std::endl;   
-                */
-
-
-		}
 		else { std::cout<<"BAD THING!"<<std::endl; }
 	}
 	else 
 	{
-		fit_spectra(in,cutEfficiency,events);
-		
+		if(statsFlag)
+		{
+			stats_fit_spectra(in,cutEfficiency,events);
 		}
+		else
+		{
+			fit_spectra(in,cutEfficiency,events);
+		}	
+	}
 
 return 0;
 }
