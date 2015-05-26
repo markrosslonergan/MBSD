@@ -476,7 +476,8 @@ double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][N
 //{
 	logchiU=logchiU_start;
 	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80) 
+	while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
@@ -853,7 +854,8 @@ double stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVE
 
 	logchiU=logchiU_start;
 	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80) 
+	while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
