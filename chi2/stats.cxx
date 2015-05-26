@@ -337,7 +337,7 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 return 0.0;
 }
 
-double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS]){
+BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS]){
 	double zeta_b = 0.0;
 	double sigma_s = 1.0;
 	
@@ -476,8 +476,8 @@ double fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][N
 //{
 	logchiU=logchiU_start;
 	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < 80 && A_sum < 80) 
+	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
@@ -678,10 +678,15 @@ logchiU_step = 0.001;
 
 //	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<38.9753-A_best<<" "<<A_best_chiU<<std::endl;
 	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
-return 0.0;
+
+BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
+output->E_bf = E_best_chiU;
+output->A_bf = A_best_chiU;
+
+return output;
 }
 
-double stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
+BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {
 	double Ezeta_b = 0.0;
 	double Azeta_b = 0.0;
@@ -854,8 +859,8 @@ double stats_fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVE
 
 	logchiU=logchiU_start;
 	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < 80 && A_sum < 80) 
+	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < 80 && A_sum < 80) 
 	{
 
 		in.mS = temp_mS;
@@ -1074,7 +1079,11 @@ logchiU_step = 0.001;
 //std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
         std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<EBF_bkg_only_chi-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<ABF_bkg_only_chi-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
 
-return 0.0;
+BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
+output->E_bf = E_best_chiU;
+output->A_bf = A_best_chiU;
+
+return output;
 }
 
 int main(int argc, char * argv[])
@@ -1094,7 +1103,7 @@ int main(int argc, char * argv[])
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "m:Z:X:c:S:PFEROA")) != -1)
+	while ((c = getopt (argc, argv, "m:Z:X:c:S:B:PFEROA")) != -1)
    	{ 
 	switch (c) 
       	{
@@ -1130,6 +1139,11 @@ int main(int argc, char * argv[])
 			break;
     		case 'O':
         		modeFlag = 4;
+			break;
+    		case 'B':
+			if(!strcmp(optarg,"E")){ modeFlag = 5; }
+			else if(!strcmp(optarg,"A")){ modeFlag = 6; }
+			else { printf("Very bad thing!\nAborting...\n\nYou're probably not using the -B flag correctly.\n\n"); exit(1); }
 			break;
 		case 'S':
                         statsFlag = 1;
@@ -1171,9 +1185,27 @@ int main(int argc, char * argv[])
 		int i;
 		double eGram[EBINS];
 		double cosGram[COSBINS];
+		double contEfficiency;
 
-		double contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		//A slightly hacky way to print the best-fit spectra.
+		if(modeFlag == 5 || modeFlag == 6)// 5: print best fitting energy spec. 6: print best fitting angular spec.
+		{
+			BF_RESULT * bestfit = (BF_RESULT *)malloc(sizeof(BF_RESULT));
+			bestfit = stats_fit_spectra(in,cutEfficiency,events);
 
+			if (modeFlag == 5){ chiU = bestfit->E_bf; modeFlag = 1; statsFlag=0;}
+			else { chiU = bestfit->A_bf; modeFlag = 2; statsFlag=0;}
+
+
+			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		}
+		else
+		{
+			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		}
+
+
+		// The main modeFlag fractionating column.
 		if(modeFlag == 1)
 		{
 			for(i=0;i<EBINS;i++)

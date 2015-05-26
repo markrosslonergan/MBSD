@@ -14,6 +14,7 @@
 #define COSBINS 10
 
 typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; } CL_input;
+typedef struct BF_RESULT { double E_bf; double A_bf; } BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
 
