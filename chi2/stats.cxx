@@ -135,6 +135,7 @@ return ((double)good)/((double)NUMEVENTS);
 
 double plot_minimization_spectrum(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {
+
 	double zeta_b = 0.0;
 	double sigma_s = 1.0;
 	
@@ -142,9 +143,11 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 	double lambda=0.0;
 	double E_sum=0.0;
 	double A_sum=0.0;
-	
+	double QE_sum=0.0;
+
 	double eGram[EBINS];
 	double cosGram[COSBINS];
+	double qeGram[QEBINS];
 
 	int i;
 	for(i=0;i<EBINS;i++)
@@ -154,6 +157,10 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 	for(i=0;i<COSBINS;i++)
 	{
 		cosGram[i]=0.0;
+	}
+	for(i=0;i<QEBINS;i++)
+	{
+		qeGram[i]=0.0;
 	}
 
 	double eO[EBINS];
@@ -213,7 +220,6 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 	cosO[7] = 139;
 	cosO[8] = 237;
 	cosO[9] = 429;
-
 	cosB[0] = 19.9;
 	cosB[1] = 23.1;
 	cosB[2] = 28.8;
@@ -225,8 +231,16 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 	cosB[8] = 196.8;
 	cosB[9] = 390;
 
+	double qeO[QEBINS];
+	double qeB[QEBINS];
+      	qeO[0] =  232;qeO[1] = 156 ;qeO[2] = 156 ;qeO[3] = 79 ;qeO[4] = 81 ;qeO[5] = 70 ;qeO[6] = 63 ;qeO[7] = 65 ;qeO[8] = 62 ;qeO[9] = 34 ;qeO[10] = 70;
+        qeB[0] = 181.1 ;qeB[1] = 108.4;qeB[2] = 120.4;qeB[3] = 64.2;qeB[4] = 90.3; qeB[5] = 67.7;qeB[6] = 70.4;qeB[7] = 57.5;qeB[8] = 52.3; qeB[9] = 39;qeB[10] = 70.2;
+
+
+
 	double temp_tot_E =0.0;
 	double temp_tot_A =0.0;
+	double temp_tot_QE=0.0;
 //	int j;
 //	for(j=0;j<COSBINS;j++)
 //	{	
@@ -246,33 +260,42 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 	double logchiU,chiU,contEfficiency;
 	double best_E_contEfficiency=1e50;
 	double best_A_contEfficiency=1e50;
+	double best_QE_contEfficiency=1e50;
 	double best_E_N_events=1e-50;
 	double best_A_N_events=1e-50;
+	double best_QE_N_events=1e-50;
 	double E_best_chiU = 1e50;
 	double E_best = 1e4;
 	double A_best_chiU = 1e50;
 	double A_best = 1e4;
+	double QE_best_chiU = 1e50;
+	double QE_best = 1e6;
 	double temp_mS = in.mS;
 	double temp_mZprime = in.mZprime;
 
 	double E_N_events=0;
 	double A_N_events=0;
+	double QE_N_events=0;
 	double E_N_sig_events=0;
 	double A_N_sig_events=0;
+	double QE_N_sig_events=0;
 	double E_N_bg_events=0;
 	double A_N_bg_events=0;
+	double QE_N_bg_events=0;
 	double E_best_N_sig_events = 0;
 	double A_best_N_sig_events = 0;
+	double QE_best_N_sig_events = 0;
 	double E_best_N_bg_events = 0;
 	double A_best_N_bg_events = 0;
+	double QE_best_N_bg_events = 0;
 
 	double logchiU_step = 0.01;
 	double logchiU_start = -7.0;
 //int loopflag = 1;
 //while(loopflag)
 //{
-	logchiU=logchiU_start;
-	while(E_sum < 1e3 && A_sum < 1e3)
+	logchiU=logchiU_start; 
+	while(E_sum < 1e3 && A_sum < 1e3 && QE_sum < 1e3)
 	{
 
 		in.mS = temp_mS;
@@ -281,8 +304,9 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 		chiU=pow(10.0,logchiU);
 		E_sum=0.0;
 		A_sum=0.0;
+		QE_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
 
 		E_N_events = 0;
 		E_N_sig_events = 0;
@@ -290,6 +314,10 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 		A_N_sig_events = 0;
 		A_N_bg_events = 0;
 		A_N_events = 0;
+		QE_N_sig_events = 0;
+		QE_N_bg_events = 0;
+		QE_N_events = 0;
+
 
 		int bin = 0;
 		double temp_sig,temp_bg;
@@ -321,6 +349,20 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 			//	A_sum+= (lambda-N)*(lambda-N)/lambda;
 				A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 			}
+
+			for(bin=0;bin<QEBINS;bin++)
+			{
+				temp_sig = sigma_s*qeGram[bin];
+				temp_bg = (1.0+zeta_b)*qeB[bin];
+				lambda = temp_sig + temp_bg;
+				N = qeO[bin]; //MB has seen O[] events.
+				
+				QE_N_events += lambda;
+				QE_N_sig_events += temp_sig;
+				QE_N_bg_events += temp_bg;
+			//	A_sum+= (lambda-N)*(lambda-N)/lambda;
+				QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+			}
 	//	}
 
 		//a guesstimate of the systematic error on the background.
@@ -328,7 +370,8 @@ double plot_minimization_spectrum(CL_input in, double cutEfficiency, double even
 		// add prior on zeta.
 		E_sum += pow((zeta_b/sigma_zeta),2.0);
 		A_sum += pow((zeta_b/sigma_zeta),2.0);
-		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<std::endl;
+		QE_sum += pow((zeta_b/sigma_zeta),2.0);
+		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<" "<<QE_sum<<std::endl;
 
 		logchiU += logchiU_step;
 
@@ -341,13 +384,16 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 	double zeta_b = 0.0;
 	double sigma_s = 1.0;
 	
+
 	double N=0.0;
 	double lambda=0.0;
 	double E_sum=0.0;
 	double A_sum=0.0;
+	double QE_sum=0.0;
 	
 	double eGram[EBINS];
 	double cosGram[COSBINS];
+	double qeGram[QEBINS];
 
 	int i;
 	for(i=0;i<EBINS;i++)
@@ -358,7 +404,10 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 	{
 		cosGram[i]=0.0;
 	}
-
+	for(i=0;i<QEBINS;i++)
+	{
+		qeGram[i]=0.0;
+	}
 	double eO[EBINS];
 	double eB[EBINS];
 
@@ -427,10 +476,16 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 	cosB[7] = 121;
 	cosB[8] = 196.8;
 	cosB[9] = 390;
+	double qeO[QEBINS];
+	double qeB[QEBINS];
+      	qeO[0] =  232; qeO[1] = 156 ;qeO[2] = 156 ;qeO[3] = 79 ;qeO[4] = 81 ;qeO[5] = 70 ;qeO[6] = 63 ;qeO[7] = 65 ;qeO[8] = 62 ;qeO[9] = 34 ;qeO[10] = 70;
+        qeB[0] = 181.1 ;qeB[1] = 108.4;qeB[2] = 120.4;qeB[3] = 64.2;qeB[4] = 90.3; qeB[5] = 67.7;qeB[6] = 70.4;qeB[7] = 57.5;qeB[8] = 52.3; qeB[9] = 39;qeB[10] = 70.2;
+
+
 
 	double temp_tot_E =0.0;
 	double temp_tot_A =0.0;
-//	int j;
+	double temp_tot_QE =0.0;
 //	for(j=0;j<COSBINS;j++)
 //	{	
 //		temp_tot_A += cosO[j] - cosB[j];
@@ -449,35 +504,59 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 	double logchiU,chiU,contEfficiency;
 	double best_E_contEfficiency=1e50;
 	double best_A_contEfficiency=1e50;
+	double best_QE_contEfficiency=1e50;
 	double best_E_N_events=1e-50;
 	double best_A_N_events=1e-50;
+	double best_QE_N_events=1e-50;
 	double E_best_chiU = 1e50;
 	double E_best = 1e4;
 	double A_best_chiU = 1e50;
 	double A_best = 1e4;
+	double QE_best_chiU = 1e50;
+	double QE_best = 1e6;
 	double temp_mS = in.mS;
 	double temp_mZprime = in.mZprime;
 
 	double E_N_events=0;
 	double A_N_events=0;
+	double QE_N_events=0;
 	double E_N_sig_events=0;
 	double A_N_sig_events=0;
+	double QE_N_sig_events=0;
 	double E_N_bg_events=0;
 	double A_N_bg_events=0;
+	double QE_N_bg_events=0;
 	double E_best_N_sig_events = 0;
 	double A_best_N_sig_events = 0;
+	double QE_best_N_sig_events = 0;
 	double E_best_N_bg_events = 0;
 	double A_best_N_bg_events = 0;
+	double QE_best_N_bg_events = 0;
 
 	double logchiU_step = 0.1;
 	double logchiU_start = -7.0;
+
+
+// Whats the background only fit. for QE
+//			double armalot = 0.0;
+//			for(int bin=0;bin<QEBINS;bin++)
+//			{
+//				armalot += 2.0*(qeB[bin]-qeO[bin]) + 2.0*qeO[bin]*log(qeO[bin]/qeB[bin]);
+//				std::cout<<"arm: "<<armalot<<std::endl;
+//			} 
+//			std::cout<<"# background fit is: "<<armalot<<std::endl;
+	
+
+
+
+
 //int loopflag = 1;
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80) 
+	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < MCHI && A_sum < MCHI && QE_sum < MCHI) 
 	{
 
 		in.mS = temp_mS;
@@ -486,8 +565,9 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 		chiU=pow(10.0,logchiU);
 		E_sum=0.0;
 		A_sum=0.0;
+		QE_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
 
 		E_N_events = 0;
 		E_N_sig_events = 0;
@@ -495,6 +575,9 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 		A_N_sig_events = 0;
 		A_N_bg_events = 0;
 		A_N_events = 0;
+		QE_N_sig_events = 0;
+		QE_N_bg_events = 0;
+		QE_N_events = 0;
 
 		int bin = 0;
 		double temp_sig,temp_bg;
@@ -526,6 +609,20 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 			//	A_sum+= (lambda-N)*(lambda-N)/lambda;
 				A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 			}
+
+			for(bin=0;bin<QEBINS;bin++)
+			{
+				temp_sig = sigma_s*qeGram[bin];
+				temp_bg = (1.0+zeta_b)*qeB[bin];
+				lambda = temp_sig + temp_bg;
+				N = qeO[bin]; //MB has seen O[] events.
+				
+				QE_N_events += lambda;
+				QE_N_sig_events += temp_sig;
+				QE_N_bg_events += temp_bg;
+			//	QE_sum+= (lambda-N)*(lambda-N)/lambda;
+				QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+			}
 	//	}
 
 		//a guesstimate of the systematic error on the background.
@@ -533,6 +630,7 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 		// add prior on zeta.
 		E_sum += pow((zeta_b/sigma_zeta),2.0);
 		A_sum += pow((zeta_b/sigma_zeta),2.0);
+		QE_sum += pow((zeta_b/sigma_zeta),2.0);
 //		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<std::endl;
 
 		logchiU += logchiU_step;
@@ -543,9 +641,16 @@ logchiU -= logchiU_step;
 double breakpoint_logchiU = logchiU;
 double E_sum_previous = E_sum + 1e-8;
 double A_sum_previous = A_sum + 1e-8;
+double QE_sum_previous = QE_sum + 1e-8;
 double temp_E_sum = 0.0;
 double temp_A_sum = 0.0;
+double temp_QE_sum = 0.0;
 logchiU_step = 0.001;
+
+
+
+
+
 
 //printf("I did a thing.\n");
 	while( E_sum < E_sum_previous)
@@ -562,7 +667,7 @@ logchiU_step = 0.001;
 		chiU=pow(10.0,logchiU);
 		E_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
 
 		E_N_events = 0;
 		E_N_sig_events = 0;
@@ -621,7 +726,7 @@ logchiU_step = 0.001;
 		chiU=pow(10.0,logchiU);
 		A_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
 
 		A_N_sig_events = 0;
 		A_N_bg_events = 0;
@@ -666,22 +771,86 @@ logchiU_step = 0.001;
 
 	}
 
+	logchiU = breakpoint_logchiU; 
+	
+	while( QE_sum < QE_sum_previous)
+	{
+
+		temp_QE_sum = QE_sum;
+	
+		logchiU -= logchiU_step;
+
+//printf("I did a thing. Again.\n");
+		in.mS = temp_mS;
+		in.mZprime = temp_mZprime;
+
+		chiU=pow(10.0,logchiU);
+		QE_sum=0.0;
+
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
+
+		QE_N_events = 0;
+		QE_N_sig_events = 0;
+		QE_N_bg_events = 0;
+
+		int bin = 0;
+		double temp_sig,temp_bg;
+	//	if (sigma_s > 1e-5){
+			for(bin=0;bin<QEBINS;bin++)
+			{
+				temp_sig = sigma_s*qeGram[bin];
+				temp_bg = (1.0+zeta_b)*qeB[bin];
+				lambda = temp_sig + temp_bg;
+				N = qeO[bin]; //MB has seen O[] events.
+				
+				QE_N_events += lambda;
+				QE_N_sig_events += temp_sig;
+				QE_N_bg_events += temp_bg;
+			//	QE_sum+= (lambda-N)*(lambda-N)/lambda;
+				QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+			}
+	//	}
+
+		//a guesstimate of the systematic error on the background.
+		double sigma_zeta = 0.05;
+		// add prior on zeta.
+		QE_sum += pow((zeta_b/sigma_zeta),2.0);
+//		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<std::endl;
+
+		if(QE_sum < QE_best)
+		{ 
+			QE_best=QE_sum; 
+			QE_best_chiU = chiU; 
+			best_QE_contEfficiency = contEfficiency; 
+			best_QE_N_events = QE_N_events;
+			QE_best_N_sig_events = QE_N_sig_events;
+			QE_best_N_bg_events = QE_N_bg_events;
+		}
+		
+		QE_sum_previous = temp_QE_sum;
+
+	} 
+
 
 	if(fabs(E_best-65.1554) < 1e-3) { E_best=65.1554; }
 	if(fabs(A_best-38.9753) < 1e-3) { A_best=38.9753; }
+	if(fabs(QE_best-49.4823) < 1e-3) { QE_best=49.4823;}
 
 //	double E_check = E_best_chiU*E_best_chiU*best_E_contEfficiency*getTotalNumEvents(in)*cutEfficiency;
 //	double A_check = A_best_chiU*A_best_chiU*best_A_contEfficiency*getTotalNumEvents(in)*cutEfficiency;
 
 //	std::cout<<E_check<<" "<<A_check<<std::endl;
-	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" Energy: "<<best_E_N_events<<"= ("<<E_best_N_sig_events<<" + "<<E_best_N_bg_events<<") Angle: "<<best_A_N_events<<"= ("<<A_best_N_sig_events<<" + "<<A_best_N_bg_events<<") "<<std::endl;
+	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" Energy: "<<best_E_N_events<<"= ("<<E_best_N_sig_events<<" + "<<E_best_N_bg_events<<") Angle: "<<best_A_N_events<<"= ("<<A_best_N_sig_events<<" + "<<A_best_N_bg_events<<") QE: "<<best_QE_N_events<<"= ("<<QE_best_N_sig_events<<" + "<<QE_best_N_bg_events<<") "<<std::endl;
 
 //	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<38.9753-A_best<<" "<<A_best_chiU<<std::endl;
-	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
+	std::cout<<"#"<<"|ms|"<<" | "<<"mz"<<"| "<<"DelChiE"<<" | "<<"U at BF E"<<" | "<<"ContEff at BF E"<<" | "<<"DelChiA"<<" | "<<"U at BF A"<<" | "<<"ContEff at BF A"<<" | "<<"CutEff"<<" | "<<"DelChiQE"<<" | "<<"U at BF QE"<<" | "<<"ContEff at BF QE"<<std::endl;
+
+	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<" "<<49.4823-QE_best<<" "<<QE_best_chiU<<" "<<best_QE_contEfficiency<<std::endl;
 
 BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
 output->E_bf = E_best_chiU;
 output->A_bf = A_best_chiU;
+output->QE_bf = QE_best_chiU;
 
 return output;
 }
@@ -690,6 +859,7 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 {
 	double Ezeta_b = 0.0;
 	double Azeta_b = 0.0;
+	double QEzeta_b = 0.0;
 	double sigma_s = 1.0;
 	double sigma_zeta = in.Sigma_Zeta;
 
@@ -698,9 +868,11 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 	double lambda=0.0;
 	double E_sum=0.0;
 	double A_sum=0.0;
+	double QE_sum=0.0;
 	
 	double eGram[EBINS];
 	double cosGram[COSBINS];
+	double qeGram[QEBINS];
 
 	int i;
 	for(i=0;i<EBINS;i++)
@@ -711,7 +883,10 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 	{
 		cosGram[i]=0.0;
 	}
-
+	for(i=0;i<QEBINS;i++)
+	{
+		qeGram[i]=0.0;
+	}
 	double eO[EBINS];
 	double eB[EBINS];
 
@@ -780,9 +955,15 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 	cosB[7] = 121;
 	cosB[8] = 196.8;
 	cosB[9] = 390;
+	double qeO[QEBINS];
+	double qeB[QEBINS];
+      	qeO[0] =  232; qeO[1] = 156 ;qeO[2] = 156 ;qeO[3] = 79 ;qeO[4] = 81 ;qeO[5] = 70 ;qeO[6] = 63 ;qeO[7] = 65 ;qeO[8] = 62 ;qeO[9] = 34 ;qeO[10] = 70;
+        qeB[0] = 181.1 ;qeB[1] = 108.4;qeB[2] = 120.4;qeB[3] = 64.2;qeB[4] = 90.3; qeB[5] = 67.7;qeB[6] = 70.4;qeB[7] = 57.5;qeB[8] = 52.3; qeB[9] = 39;qeB[10] = 70.2;
+
 
 	double temp_tot_E =0.0;
 	double temp_tot_A =0.0;
+	double temp_tot_QE =0.0;
 //	int j;
 //	for(j=0;j<COSBINS;j++)
 //	{	
@@ -802,25 +983,34 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 	double logchiU,chiU,contEfficiency;
 	double best_E_contEfficiency=1e50;
 	double best_A_contEfficiency=1e50;
+	double best_QE_contEfficiency=1e50;
 	double best_E_N_events=1e-50;
 	double best_A_N_events=1e-50;
+	double best_QE_N_events=1e-50;
 	double E_best_chiU = 1e50;
 	double E_best = 1e4;
 	double A_best_chiU = 1e50;
 	double A_best = 1e4;
+	double QE_best_chiU = 1e50;
+	double QE_best = 1e6;
 	double temp_mS = in.mS;
 	double temp_mZprime = in.mZprime;
 
 	double E_N_events=0;
 	double A_N_events=0;
+	double QE_N_events=0;
 	double E_N_sig_events=0;
 	double A_N_sig_events=0;
+	double QE_N_sig_events=0;
 	double E_N_bg_events=0;
 	double A_N_bg_events=0;
+	double QE_N_bg_events=0;
 	double E_best_N_sig_events = 0;
 	double A_best_N_sig_events = 0;
+	double QE_best_N_sig_events = 0;
 	double E_best_N_bg_events = 0;
 	double A_best_N_bg_events = 0;
+	double QE_best_N_bg_events = 0;
 
 	double logchiU_step = 0.1;
 	double logchiU_start = -7.0;
@@ -831,11 +1021,14 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 
         std::vector<double > eVGram(eGram, eGram + EBINS);
         std::vector<double > cosVGram(cosGram, cosGram + COSBINS);
+        std::vector<double > qeVGram(qeGram, qeGram + QEBINS);
         
         std::vector<double > bf_zeta_b;  
         double bf_chi ;
         std::vector<double > abf_zeta_b; 
         double abf_chi ;
+        std::vector<double > qebf_zeta_b; 
+        double qebf_chi ;
 //      marginalize(&bf_zeta_b,&bf_chi, eVGram);
 //      std::cout<<"Bf: "<<bf_zeta_b[0]<<" BFChi: "<<bf_chi<<std::endl;
 
@@ -853,14 +1046,20 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
         double ABF_bkg_only_chi = 10000;
         nuisMarginalize(& ABF_bkg_only_zeta_b,&ABF_bkg_only_chi, &aZeros,1,sigma_zeta);
         std::cout<<"# Angle sigma_zeta Bf: "<<ABF_bkg_only_zeta_b[0]<<" BFChi: "<<ABF_bkg_only_chi<<std::endl;
+     
+        std::vector<double > qeZeros(QEBINS, 0.0);
+        std::vector<double > QEBF_bkg_only_zeta_b = {0};
+        double QEBF_bkg_only_chi = 10000;
+        nuisMarginalize(& QEBF_bkg_only_zeta_b, &QEBF_bkg_only_chi, &qeZeros,2,sigma_zeta);
+        std::cout<<"# QE sigma_zeta Bf: "<<QEBF_bkg_only_zeta_b[0]<<" BFChi: "<<QEBF_bkg_only_chi<<std::endl;
 
 
 //#########################################################################
 
 	logchiU=logchiU_start;
-	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < 80 && A_sum < 80 && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < 80 && A_sum < 80) 
+	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < MCHI && A_sum < MCHI ) 
 	{
 
 		in.mS = temp_mS;
@@ -869,8 +1068,9 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 		chiU=pow(10.0,logchiU);
 		E_sum=0.0;
 		A_sum=0.0;
+		QE_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
                         eVGram.assign(eGram, eGram+EBINS);
                         nuisMarginalize(&bf_zeta_b, &bf_chi, &eVGram,0,sigma_zeta);
                         Ezeta_b=bf_zeta_b[0];
@@ -879,12 +1079,19 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
                         nuisMarginalize(&abf_zeta_b, &abf_chi, &cosVGram,1,sigma_zeta);
                         Azeta_b=abf_zeta_b[0];
 
+                        qeVGram.assign(qeGram, qeGram+QEBINS);
+                        nuisMarginalize(&qebf_zeta_b, &qebf_chi, &qeVGram,2,sigma_zeta);
+                        QEzeta_b=qebf_zeta_b[0];
+
 		E_N_events = 0;
 		E_N_sig_events = 0;
 		E_N_bg_events = 0;
 		A_N_sig_events = 0;
 		A_N_bg_events = 0;
 		A_N_events = 0;
+		QE_N_sig_events = 0;
+		QE_N_bg_events = 0;
+		QE_N_events = 0;
 
 		int bin = 0;
 		double temp_sig,temp_bg;
@@ -916,6 +1123,20 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 			//	A_sum+= (lambda-N)*(lambda-N)/lambda;
 				A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 			}
+
+			for(bin=0;bin<QEBINS;bin++)
+			{
+				temp_sig = sigma_s*qeGram[bin];
+				temp_bg = (1.0+QEzeta_b)*qeB[bin];
+				lambda = temp_sig + temp_bg;
+				N = qeO[bin]; //MB has seen O[] events.
+				
+				QE_N_events += lambda;
+				QE_N_sig_events += temp_sig;
+				QE_N_bg_events += temp_bg;
+			//	QE_sum+= (lambda-N)*(lambda-N)/lambda;
+				QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+			}
 	//	}
 
 		//a guesstimate of the systematic error on the background.
@@ -923,6 +1144,7 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 		// add prior on zeta.
 		E_sum += pow((Ezeta_b/sigma_zeta),2.0);
 		A_sum += pow((Azeta_b/sigma_zeta),2.0);
+		QE_sum += pow((QEzeta_b/sigma_zeta),2.0);
 //		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<std::endl;
 
 		logchiU += logchiU_step;
@@ -933,8 +1155,10 @@ logchiU -= logchiU_step;
 double breakpoint_logchiU = logchiU;
 double E_sum_previous = E_sum + 1e-8;
 double A_sum_previous = A_sum + 1e-8;
+double QE_sum_previous = QE_sum + 1e-8;
 double temp_E_sum = 0.0;
 double temp_A_sum = 0.0;
+double temp_QE_sum = 0.0;
 logchiU_step = 0.001;
 
 //printf("I did a thing.\n");
@@ -952,7 +1176,7 @@ logchiU_step = 0.001;
 		chiU=pow(10.0,logchiU);
 		E_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
                         eVGram.assign(eGram, eGram+EBINS);
                         nuisMarginalize(&bf_zeta_b, &bf_chi, &eVGram,0,sigma_zeta);
                         Ezeta_b=bf_zeta_b[0];
@@ -1014,7 +1238,7 @@ logchiU_step = 0.001;
 		chiU=pow(10.0,logchiU);
 		A_sum=0.0;
 
-		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
                         cosVGram.assign(cosGram, cosGram+COSBINS);
                         nuisMarginalize(&abf_zeta_b, &abf_chi, &cosVGram,1,sigma_zeta);
                         Azeta_b = abf_zeta_b[0];
@@ -1062,26 +1286,90 @@ logchiU_step = 0.001;
 
 	}
 
+	logchiU = breakpoint_logchiU;
+	while( QE_sum < QE_sum_previous)
+	{
+
+		temp_QE_sum = QE_sum;
+	
+		logchiU -= logchiU_step;
+
+//printf("I did a thing. Again.\n");
+		in.mS = temp_mS;
+		in.mZprime = temp_mZprime;
+
+		chiU=pow(10.0,logchiU);
+		QE_sum=0.0;
+
+		contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
+                        qeVGram.assign(qeGram, qeGram+QEBINS);
+                        nuisMarginalize(&qebf_zeta_b, &qebf_chi, &qeVGram,2,sigma_zeta);
+                        QEzeta_b=qebf_zeta_b[0];
+
+		QE_N_events = 0;
+		QE_N_sig_events = 0;
+		QE_N_bg_events = 0;
+
+		int bin = 0;
+		double temp_sig,temp_bg;
+	//	if (sigma_s > 1e-5){
+			for(bin=0;bin<QEBINS;bin++)
+			{
+				temp_sig = sigma_s*qeGram[bin];
+				temp_bg = (1.0+QEzeta_b)*qeB[bin];
+				lambda = temp_sig + temp_bg;
+				N = qeO[bin]; //MB has seen O[] events.
+				
+				QE_N_events += lambda;
+				QE_N_sig_events += temp_sig;
+				QE_N_bg_events += temp_bg;
+			//	QE_sum+= (lambda-N)*(lambda-N)/lambda;
+				QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+			}
+	//	}
+
+		//a guesstimate of the systematic error on the background.
+		//double sigma_zeta = 0.05;
+		// add prior on zeta.
+		QE_sum += pow((QEzeta_b/sigma_zeta),2.0);
+//		std::cout<<chiU<<" "<<E_sum<<" "<<A_sum<<std::endl;
+
+		if(QE_sum<QE_best)
+		{ 
+			QE_best=QE_sum; 
+			QE_best_chiU = chiU; 
+			best_QE_contEfficiency = contEfficiency; 
+			best_QE_N_events = QE_N_events;
+			QE_best_N_sig_events = QE_N_sig_events;
+			QE_best_N_bg_events = QE_N_bg_events;
+		}
+		
+		QE_sum_previous = temp_QE_sum;
+
+	}
+
 
 //	if(fabs(E_best-65.1554) < 1e-3) { E_best=65.1554; }
 //	if(fabs(A_best-38.9753) < 1e-3) { A_best=38.9753; }
         if(fabs(E_best-EBF_bkg_only_chi) < 1e-3) { E_best=EBF_bkg_only_chi; }
         if(fabs(A_best-ABF_bkg_only_chi) < 1e-3) { A_best=ABF_bkg_only_chi; }
+        if(fabs(QE_best-QEBF_bkg_only_chi) < 1e-3) { QE_best=QEBF_bkg_only_chi; }
 
 
 //	double E_check = E_best_chiU*E_best_chiU*best_E_contEfficiency*getTotalNumEvents(in)*cutEfficiency;
 //	double A_check = A_best_chiU*A_best_chiU*best_A_contEfficiency*getTotalNumEvents(in)*cutEfficiency;
 
 //	std::cout<<E_check<<" "<<A_check<<std::endl;
-	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" Energy: "<<best_E_N_events<<"= ("<<E_best_N_sig_events<<" + "<<E_best_N_bg_events<<") Angle: "<<best_A_N_events<<"= ("<<A_best_N_sig_events<<" + "<<A_best_N_bg_events<<") "<<std::endl;
+	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" Energy: "<<best_E_N_events<<"= ("<<E_best_N_sig_events<<" + "<<E_best_N_bg_events<<") Angle: "<<best_A_N_events<<"= ("<<A_best_N_sig_events<<" + "<<A_best_N_bg_events<<") QE: "<<best_QE_N_events<<"= ("<<QE_best_N_sig_events<<" + "<<QE_best_N_bg_events<<") "<<std::endl;
 
 //	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<38.9753-A_best<<" "<<A_best_chiU<<std::endl;
 //std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
-        std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<EBF_bkg_only_chi-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<ABF_bkg_only_chi-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
+        std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<EBF_bkg_only_chi-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<ABF_bkg_only_chi-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<"  "<<QEBF_bkg_only_chi-QE_best<<" "<<QE_best_chiU<<" "<<best_QE_contEfficiency<<std::endl;
 
 BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
 output->E_bf = E_best_chiU;
 output->A_bf = A_best_chiU;
+output->QE_bf = QE_best_chiU;
 
 return output;
 }
@@ -1103,7 +1391,7 @@ int main(int argc, char * argv[])
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "m:Z:X:c:S:B:PFEROA")) != -1)
+	while ((c = getopt (argc, argv, "m:Z:X:c:S:B:TPFEROAQ")) != -1)
    	{ 
 	switch (c) 
       	{
@@ -1143,15 +1431,22 @@ int main(int argc, char * argv[])
     		case 'B':
 			if(!strcmp(optarg,"E")){ modeFlag = 5; }
 			else if(!strcmp(optarg,"A")){ modeFlag = 6; }
+			else if(!strcmp(optarg,"Q")){ modeFlag = 9; }
 			else { printf("Very bad thing!\nAborting...\n\nYou're probably not using the -B flag correctly.\n\n"); exit(1); }
 			break;
 		case 'S':
                         statsFlag = 1;
 			in.Sigma_Zeta =  strtof(optarg,NULL);
 			break;
+		case 'T':
+			modeFlag=7;
+			break;
+		case 'Q':
+			modeFlag=8;
+			break;
       		case '?':
 			printf("Abandon hope all ye who enter this value: %c\n",optopt);
-			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)\tprints the (E)nergy or (A)ngular spectrum.\n\t-F\tprints mimima\n\t-R\tturns on energy asymmetry cut\n\t-O\tprints the cut efficiency.\n\t-S\t Toggles Systematics of bkg (Default off)\n");
+			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)(-Q)\tprints the (E)nergy, (A)ngular spectrum or (Q)e spectrum.\n\t-B \tBrints the (BE)nergy, (BA)ngular spectrum or (BQ)e spectrum.\n\t-F\tprints mimima\n\t-R\tturns on energy asymmetry cut\n\t-O\tprints the cut efficiency.\n\t-S\t Toggles Systematics of bkg (Default off)\n\t-T\tTest, testing ground\n");
                   	return 1;
       		default:
 			printf("I don't know how you got here.\n");
@@ -1185,23 +1480,26 @@ int main(int argc, char * argv[])
 		int i;
 		double eGram[EBINS];
 		double cosGram[COSBINS];
+		double qeGram[QEBINS];
 		double contEfficiency;
 
 		//A slightly hacky way to print the best-fit spectra.
-		if(modeFlag == 5 || modeFlag == 6)// 5: print best fitting energy spec. 6: print best fitting angular spec.
+		if(modeFlag == 5 || modeFlag == 6 || modeFlag == 9)// 5: print best fitting energy spec. 6: print best fitting angular spec. 8: print best fitting QE spectrum
 		{
 			BF_RESULT * bestfit = (BF_RESULT *)malloc(sizeof(BF_RESULT));
 			bestfit = stats_fit_spectra(in,cutEfficiency,events);
 
 			if (modeFlag == 5){ chiU = bestfit->E_bf; modeFlag = 1; statsFlag=0;}
-			else { chiU = bestfit->A_bf; modeFlag = 2; statsFlag=0;}
+			else if (modeFlag ==6){ chiU = bestfit->A_bf; modeFlag = 2; statsFlag=0;}
+			else {chiU = bestfit->QE_bf; modeFlag = 8; statsFlag=0; }
 
 
-			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
 		}
 		else
 		{
-			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram);
+			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
+			std::cout<<"#Run Here"<<std::endl;
 		}
 
 
@@ -1220,6 +1518,13 @@ int main(int argc, char * argv[])
 				std::cout<<BintoCentralCos(i)<<" "<<cosGram[i]<<std::endl;
 			}
 		}
+		else if(modeFlag == 8)
+		{ 
+			for(i=0;i<QEBINS;i++)
+			{
+				std::cout<<BintoCentalQE(i)<<" "<<qeGram[i]<<std::endl;
+			}
+		}
 		else if(modeFlag == 3)
 		{ 
 			plot_minimization_spectrum(in,cutEfficiency,events);
@@ -1228,7 +1533,14 @@ int main(int argc, char * argv[])
 		{ 
 			std::cout<<in.mS<<" "<<in.mZprime<<" "<<cutEfficiency<<std::endl;
 		}
-		else { std::cout<<"BAD THING!"<<std::endl; }
+		else if(modeFlag == 7)
+		{
+			std::cout<<"Test:"<<QEfromEandCos(0.2,0.9)<<std::endl;
+			for(double ee=0.1; ee<3; ee+=0.1){
+				std::cout<<ee<<" "<<QEfromEandCos(ee,0)<<"  "<<QEtoBin(QEfromEandCos(ee,0))<<std::endl;
+			}
+
+		} else { std::cout<<"BAD THING!"<<std::endl; }
 	}
 	else 
 	{

@@ -12,9 +12,12 @@
 
 #define EBINS 19
 #define COSBINS 10
+#define QEBINS 11
+
+#define MCHI 100 
 
 typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; } CL_input;
-typedef struct BF_RESULT { double E_bf; double A_bf; } BF_RESULT;
+typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf;} BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
 
@@ -22,11 +25,16 @@ int EtoBin(double E);
 double BintoCentralE(int bin);
 int CostoBin(double C);
 double BintoCentralCos(int b);
+int QEtoBin(double QE);
+double BintoCentalQE(int b);
+
+double QEfromEandCos(double Evis,double costh);
 
 double decayProb(CL_input input, double chiU, double Es);
-double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[]);
+double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[]);
 int printEGram(double eGram[]);
 int printCosGram(double cosGram[]);
+int printQeGram(double qeGram[]);
 
 double boundU( double ms);
 double boundChi(double ms);
@@ -36,6 +44,7 @@ double boundUtau(double ms);
 typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
+double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
 
 

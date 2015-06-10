@@ -83,6 +83,51 @@ double BintoCentralCos(int b)
 	return (((double)b)+0.5)*0.2-1.0;
 }
 
+int QEtoBin(double QE)
+{
+	int ans=10;
+	std::vector<double > QEbinLow = {0.2,0.3,0.375,0.475,0.55,0.675,0.8,0.95,1.1,1.3,1.5};
+	std::vector<double > QEbinDel = {0.1,0.075,0.1,0.075,0.125,0.125,0.15,0.15,0.2,0.2,1.5};
+	for(int i = 0;i<QEBINS;i++){
+		if(QEbinLow[i]<=QE &&  QE < (QEbinLow[i]+QEbinDel[i]))
+		{
+			ans = i;
+		}
+	
+	}
+	if(QE < QEbinLow[0])
+		{
+		ans=0;
+		}
+	return ans;
+}
+
+double BintoCentalQE(int b)
+{
+	std::vector<double > QEbinLow = {0.2,0.3,0.375,0.475,0.55,0.675,0.8,0.95,1.1,1.3,1.5};
+	std::vector<double > QEbinDel = {0.1,0.075,0.1,0.075,0.125,0.125,0.15,0.15,0.2,0.2,1.5};
+	return QEbinLow[b]+QEbinDel[b]/2.0;
+}
+
+double QEfromEandCos(double Evis, double costh){
+	double Mn = 0.9395666;
+	double Mp = 0.938272;
+	double Dms= Mn*Mn-Mp*Mp;
+	double EB = 0.00786; //Binging energy of carbon per nuclear
+	double Me = 0.000510998;
+
+	double c1= -0.1472; double c2=0.2788; double c3=0.0898;double c4=-0.0196;
+	double a1= 0.9942; double a2=0.0113; //MC corrections
+
+	double EvisCor= a1*(Evis-Me)+a2+Me;
+	double beta = sqrt(1-Me*Me/(EvisCor*EvisCor));
+	double ans1 =  0.5*((2.0*Mn+EB)*EvisCor-(Dms+2*Mn*EB+EB*EB+Me*Me))/((Mn+EB)-EvisCor+sqrt(EvisCor*EvisCor-Me*Me)*costh);
+	double Q2=2*ans1*EvisCor*(1-beta*costh)-Me*Me;
+
+	return ans1-(c1+c2*Q2+c3*Q2*Q2+c4*pow(Q2,3));
+}
+
+
 double decayProb(CL_input input, double chiU, double Es)
 {
 	double mS = input.mS;
@@ -115,9 +160,10 @@ double decayProb(CL_input input, double chiU, double Es)
 return 1.0-exp(-(0.51e16)*prefac*func*L*mS/Es);
 } 
 
-double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[])
+double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[])
 {
 	double finalScale = getTotalNumEvents(in);
+
 
 	int i=0;
 	for(i=0;i<COSBINS;i++)
@@ -128,6 +174,11 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 	for(i=0;i<EBINS;i++)
 	{
 		eGram[i]=0.0;
+	}
+	
+	for(i=0;i<QEBINS;i++)
+	{
+		qeGram[i]=0.0;
 	}
 
 	double total = 0.0;
@@ -145,10 +196,10 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 			prob = decayProb(in,chiU,events[i][3]);
 			eGram[EtoBin(events[i][0])] += prob;
 			cosGram[CostoBin(cos((M_PI/180.0)*events[i][1]))] += prob;
-//			
+			qeGram[QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])))] +=prob;	
 			total+=1.0;
 			probTotal+=prob;
-//		printf("event %d: prob = %.5g\tprobTot = %.5g\n",i,prob,probTotal);
+//		        printf("event %d: prob = %.5g\tprobTot = %.5g\n",i,prob,probTotal);
 
 		}
 	}
@@ -164,6 +215,11 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 	for(i=0;i<EBINS;i++)
 	{
 		eGram[i]=chiU*chiU*cutEff*finalScale*eGram[i]/total;
+	}
+
+	for(i=0;i<QEBINS;i++)
+	{
+		qeGram[i]=chiU*chiU*cutEff*finalScale*qeGram[i]/total;
 	}
 
 //printf("chiU: %.5g\tTot: %.5g\tprobTot/total: %.5g\tcosTot: %.5g\n",chiU, total, probTotal/total, cosTot);
@@ -288,6 +344,39 @@ double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *
 return A_sum;
 }
 
+double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void *my_data){
+        
+        nuisStruct *d = reinterpret_cast<nuisStruct*>(my_data);
+        std::vector<double > qeGram = d->egram;
+        double sigma_zeta = d->Sigma_Zeta;
+
+
+        double zeta_b = x[0];
+                                 //{204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3}
+        std::vector<double > qeO = {232,156,156,79,81,70,63,65,62,34,70};
+        std::vector<double > qeB = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+
+        double temp_sig=0,temp_bg=0,lambda=0,N=0, QE_N_events=0,QE_N_sig_events=0,QE_N_bg_events= 0,QE_sum = 0;
+        double sigma_s = 1.0;
+        int bin = 0;
+        for(bin=0;bin<QEBINS;bin++)
+                        {
+                                temp_sig = sigma_s*qeGram[bin];
+                                temp_bg = (1.0+zeta_b)*qeB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = qeO[bin]; //MB has seen O[] events.
+                                
+                                QE_N_events += lambda;
+                                QE_N_sig_events += temp_sig;
+                                QE_N_bg_events += temp_bg;
+                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+                                QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+                        }
+        QE_sum+= pow((zeta_b/sigma_zeta),2.0);
+        //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
+
+return QE_sum;
+}
 
 double boundChiU(double ms, double mz)
 {
@@ -310,7 +399,9 @@ double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vect
                 full.set_min_objective(nuisFuncE, &ddata);
         } else if(whi==1){
                 full.set_min_objective(nuisFuncA,&ddata);
-        }
+        } else if(whi==2){
+		full.set_min_objective(nuisFuncQE,&ddata);
+	}
 
 
         
