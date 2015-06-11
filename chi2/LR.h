@@ -14,7 +14,7 @@
 #define COSBINS 10
 #define QEBINS 11
 
-#define MCHI 100 
+#define MCHI 80 
 
 typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; } CL_input;
 typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf;} BF_RESULT;

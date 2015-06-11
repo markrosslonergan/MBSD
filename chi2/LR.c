@@ -123,7 +123,8 @@ double QEfromEandCos(double Evis, double costh){
 	double beta = sqrt(1-Me*Me/(EvisCor*EvisCor));
 	double ans1 =  0.5*((2.0*Mn+EB)*EvisCor-(Dms+2*Mn*EB+EB*EB+Me*Me))/((Mn+EB)-EvisCor+sqrt(EvisCor*EvisCor-Me*Me)*costh);
 	double Q2=2*ans1*EvisCor*(1-beta*costh)-Me*Me;
-
+	
+	//return  0.5*((2.0*Mn+EB)*Evis-(Dms+2*Mn*EB+EB*EB+Me*Me))/((Mn+EB)-Evis+sqrt(EvisCor*Evis-Me*Me)*costh);
 	return ans1-(c1+c2*Q2+c3*Q2*Q2+c4*pow(Q2,3));
 }
 

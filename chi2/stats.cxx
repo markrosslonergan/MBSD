@@ -554,9 +554,9 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < MCHI && A_sum < MCHI && QE_sum < MCHI) 
+	while(E_sum < MCHI && A_sum < MCHI  && QE_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < MCHI && A_sum < MCHI  && QE_sum < MCHI  && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//while(E_sum < MCHI && A_sum < MCHI && QE_sum < MCHI) 
 	{
 
 		in.mS = temp_mS;
@@ -1057,9 +1057,9 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 //#########################################################################
 
 	logchiU=logchiU_start;
-	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	while(E_sum < MCHI && A_sum < MCHI ) 
+	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
 
 		in.mS = temp_mS;
@@ -1446,7 +1446,7 @@ int main(int argc, char * argv[])
 			break;
       		case '?':
 			printf("Abandon hope all ye who enter this value: %c\n",optopt);
-			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)(-Q)\tprints the (E)nergy, (A)ngular spectrum or (Q)e spectrum.\n\t-B \tBrints the (BE)nergy, (BA)ngular spectrum or (BQ)e spectrum.\n\t-F\tprints mimima\n\t-R\tturns on energy asymmetry cut\n\t-O\tprints the cut efficiency.\n\t-S\t Toggles Systematics of bkg (Default off)\n\t-T\tTest, testing ground\n");
+			printf("Allowed arguments:\n\t-m\tsets mS mass.\n\t-Z\tsets mZprime mass.\n\t-X\tsets chiU\n\t-c\tsets cuts (0.14,5.0).\n\t-P\tprints input parameters.\n\t-E(-A)(-Q)\tprints the (E)nergy, (A)ngular spectrum or (Q)e spectrum.\n\t-B \tBrints the (BE)nergy, (BA)ngular spectrum or (BQ)e spectrum.\n\t-F\tprints mimima\n\t-R\tturns on energy asymmetry cut\n\t-O\tprints the cut efficiency.\n\t-S\t Toggles Systematics of bkg (Default off)\n\t-T\t Testing ground, god knows what you will find.\n");
                   	return 1;
       		default:
 			printf("I don't know how you got here.\n");
@@ -1499,7 +1499,6 @@ int main(int argc, char * argv[])
 		else
 		{
 			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
-			std::cout<<"#Run Here"<<std::endl;
 		}
 
 
