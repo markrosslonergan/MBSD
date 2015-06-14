@@ -16,7 +16,7 @@
 
 #define MCHI 80 
 
-typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; } CL_input;
+typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; int which_var;} CL_input;
 typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf;} BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
@@ -27,11 +27,13 @@ int CostoBin(double C);
 double BintoCentralCos(int b);
 int QEtoBin(double QE);
 double BintoCentalQE(int b);
+int which_BINS(int which);
 
 double QEfromEandCos(double Evis,double costh);
 
 double decayProb(CL_input input, double chiU, double Es);
 double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[]);
+double histogrammer_indiv(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var);
 int printEGram(double eGram[]);
 int printCosGram(double cosGram[]);
 int printQeGram(double qeGram[]);
