@@ -85,19 +85,19 @@ double BintoCentralCos(int b)
 
 int QEtoBin(double QE)
 {
-	int ans=10;
+	int ans=0;
 	std::vector<double > QEbinLow = {0.2,0.3,0.375,0.475,0.55,0.675,0.8,0.95,1.1,1.3,1.5};
 	std::vector<double > QEbinDel = {0.1,0.075,0.1,0.075,0.125,0.125,0.15,0.15,0.2,0.2,1.5};
 	for(int i = 0;i<QEBINS;i++){
-		if(QEbinLow[i]<=QE &&  QE < (QEbinLow[i]+QEbinDel[i]))
+		if(QEbinLow[i]<= QE &&  QE <= (QEbinLow[i]+QEbinDel[i]))
 		{
 			ans = i;
 		}
 	
 	}
-	if(QE < QEbinLow[0])
+	if(QE < QEbinLow[0] || QE > (QEbinLow[QEBINS-1]+QEbinDel[QEBINS-1]) )
 		{
-		ans=0;
+		ans=999;
 		}
 	return ans;
 }
@@ -107,6 +107,23 @@ double BintoCentalQE(int b)
 	std::vector<double > QEbinLow = {0.2,0.3,0.375,0.475,0.55,0.675,0.8,0.95,1.1,1.3,1.5};
 	std::vector<double > QEbinDel = {0.1,0.075,0.1,0.075,0.125,0.125,0.15,0.15,0.2,0.2,1.5};
 	return QEbinLow[b]+QEbinDel[b]/2.0;
+}
+
+int which_BINS(int which_var){
+	int BINS =0;
+
+	if (which_var == 0)
+	{	
+		BINS=EBINS;
+	} else if (which_var ==1)
+	{ 
+		BINS=COSBINS;
+	} else if (which_var ==2)
+	{
+		BINS=QEBINS;
+	}
+
+return BINS;
 }
 
 double QEfromEandCos(double Evis, double costh){
@@ -185,6 +202,11 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 	double total = 0.0;
 	double probTotal = 0.0;
 	double prob = 0.0;
+	int qeWhichBin = 0;
+	double QEprob=0.0;
+	double QEtotal = 0.0;
+	double QEprobTotal = 0.0;
+
 	for(i=0;i<NUMEVENTS;i++)
 	{
 		if(events[i][0] > 1e-4)
@@ -195,11 +217,27 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 			
 			//These lines account for containment effects.
 			prob = decayProb(in,chiU,events[i][3]);
+			QEprob=prob;
 			eGram[EtoBin(events[i][0])] += prob;
 			cosGram[CostoBin(cos((M_PI/180.0)*events[i][1]))] += prob;
-			qeGram[QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])))] +=prob;	
+
+			qeWhichBin = QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])));
+
+			if(qeWhichBin == 999) //Error Bin 
+			{
+				QEprob=0;
+				QEtotal+=0.0;
+				QEprobTotal+=QEprob;
+			} else {
+				QEprob=prob;
+				qeGram[qeWhichBin] += QEprob;	
+				QEtotal+=1.0;
+				QEprobTotal+=QEprob;
+			}
+			
 			total+=1.0;
 			probTotal+=prob;
+			
 //		        printf("event %d: prob = %.5g\tprobTot = %.5g\n",i,prob,probTotal);
 
 		}
@@ -228,6 +266,79 @@ double histogrammer(CL_input in, double chiU, double cutEff, const double events
 return probTotal/total;
 }
 
+double histogrammer_indiv(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var)
+{
+	double finalScale = getTotalNumEvents(in);
+
+	int BINS=which_BINS(which_var);
+	
+	int i=0;
+	for(i=0;i<BINS;i++)
+	{
+		Gram[i]=0.0;
+	}
+	
+	double total = 0.0;
+	double probTotal = 0.0;
+	double prob = 0.0;
+	int qeWhichBin = 0;
+
+	for(i=0;i<NUMEVENTS;i++)
+	{
+		if(events[i][0] > 1e-4)
+		{			
+			//These lines DO NOT CONSIDER containment effects.
+//			eGram[EtoBin(events[i][0])] +=1.0;
+//			cosGram[CostoBin(events[i][2])] +=1.0;
+			
+			//These lines account for containment effects.
+			
+			
+			prob = decayProb(in,chiU,events[i][3]);
+			if( which_var ==0 ){
+
+				
+				
+				      	Gram[EtoBin(events[i][0])] += prob;
+					total+=1.0;
+					probTotal+=prob;
+	
+			} else if (which_var==1)
+		       	{
+					Gram[CostoBin(cos((M_PI/180.0)*events[i][1]))] += prob;
+					total+=1.0;
+					probTotal+=prob;
+			}  else if (which_var==2) 
+			{
+				qeWhichBin = QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])));
+	
+				if(qeWhichBin == 999) //Error Bin 
+				{
+					prob=0;
+					total+=0.0;
+				} else {
+					Gram[qeWhichBin] += prob;	
+					total+=1.0;
+					probTotal+=prob;
+				}
+			}
+			
+		
+//		        printf("event %d: prob = %.5g\tprobTot = %.5g\n",i,prob,probTotal);
+
+		}
+	}
+
+	
+
+	for(i=0;i<BINS;i++)
+	{
+		Gram[i]=chiU*chiU*cutEff*finalScale*Gram[i]/total;
+	}
+//printf("chiU: %.5g\tTot: %.5g\tprobTot/total: %.5g\tcosTot: %.5g\n",chiU, total, probTotal/total, cosTot);
+
+return probTotal/total;
+}
 double boundU( double ms){
         double peakB=1;
         double fit1 = -1.7969808082063344*pow(10,-8); 
@@ -402,6 +513,8 @@ double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vect
                 full.set_min_objective(nuisFuncA,&ddata);
         } else if(whi==2){
 		full.set_min_objective(nuisFuncQE,&ddata);
+	} else {
+		std::cout<<"ERROR in LR.c ~ nuisMarginalise: spectrum selector which is > 2"<<std::endl;
 	}
 
 
