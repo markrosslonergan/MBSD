@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-#define NUMEVENTS 200000
+#define NUMEVENTS 40000
 #define NUM_EVENT_OBS 7 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
 
 #define EBINS 19
@@ -42,6 +42,7 @@ double boundU( double ms);
 double boundChi(double ms);
 double boundChiU(double ms, double mz);
 double boundUtau(double ms);
+double boundUpeaky(double ms, double mz);
 
 typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);

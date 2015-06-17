@@ -26,7 +26,7 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int m = 0;
 	char s[100];
 	char filename[500] = "../decay/data/\0";
-	sprintf(s,"%.4lf_%.4lf.dat", mS, mZprime);
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -1500,7 +1500,7 @@ logchiU -= logchiU_step;
 double breakpoint_logchiU = logchiU;
 double sum_previous = sum + 1e-8;
 double temp_sum = 0.0;
-logchiU_step = 0.001;
+logchiU_step = 0.0025;
 
 //printf("I did a thing.\n");
 	while( sum < sum_previous)
@@ -1759,6 +1759,9 @@ int main(int argc, char * argv[])
 			//}
 			//
 			//stats_fit_spectra_indiv(in,cutEfficiency,events,1);
+			for(double k =0.001; k<=0.2; k+=0.001){
+				std::cout<<k<<" "<<boundUpeaky(k,0.1)<<std::endl;
+			}		
 		} else if (modeFlag == 10) {
 			
 			stats_fit_spectra_indiv(in,cutEfficiency,events);
