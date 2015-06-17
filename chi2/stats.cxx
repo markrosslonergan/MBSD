@@ -1452,6 +1452,8 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 
 	logchiU=logchiU_start;
 	while(sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	//(sum < MCHI && logchiU < log(sqrt(boundUpeaky(temp_mS,temp_mZprime)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0))
+	//while(sum < MCHI && logchiU < log(boundUpeaky(temp_mS,temp_mZprime)*sqrt(boundChi(temp_mZprime)))/log(10.0))
 	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
@@ -1500,7 +1502,7 @@ logchiU -= logchiU_step;
 double breakpoint_logchiU = logchiU;
 double sum_previous = sum + 1e-8;
 double temp_sum = 0.0;
-logchiU_step = 0.0025;
+logchiU_step = 0.0025/;
 
 //printf("I did a thing.\n");
 	while( sum < sum_previous)
