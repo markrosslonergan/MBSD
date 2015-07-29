@@ -1451,14 +1451,15 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 //#########################################################################
 
 	logchiU=logchiU_start;
-	while(sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(sum <  MCHI && logchiU < log(whatsmaxUXorder1(temp_mS,temp_mZprime))/log(10.0))
+	//while(sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(sum < MCHI && logchiU < log(sqrt(boundUpeaky(temp_mS,temp_mZprime)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0))
 	//while(sum < MCHI && logchiU < log(boundUpeaky(temp_mS,temp_mZprime)*sqrt(boundChi(temp_mZprime)))/log(10.0))
 	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
 
-		if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)
+		if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0) )
 		{
 			logchiU = log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0);
 		}
@@ -1593,6 +1594,9 @@ return output;
 
 int main(int argc, char * argv[])
 {
+
+	//std::cout<<whatsmaxUX(0.08,0.2)<<std::endl;		
+
 	static CL_input in;
 	in.eCut = 0.0;
 	in.thCut = 180.0;
@@ -1766,9 +1770,11 @@ int main(int argc, char * argv[])
 			//}
 			//
 			//stats_fit_spectra_indiv(in,cutEfficiency,events,1);
-			for(double k =0.001; k<=0.2; k+=0.001){
-				std::cout<<k<<" "<<boundUpeaky(k,0.1)<<std::endl;
-			}		
+			//for(double k =0.001; k<=0.2; k+=0.001){
+			//	std::cout<<k<<" "<<boundUpeaky(k,0.1)<<std::endl;
+			//}
+
+
 		} else if (modeFlag == 10) {
 			
 			stats_fit_spectra_indiv(in,cutEfficiency,events);

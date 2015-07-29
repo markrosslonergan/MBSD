@@ -44,6 +44,17 @@ double boundChiU(double ms, double mz);
 double boundUtau(double ms);
 double boundUpeaky(double ms, double mz);
 
+double boundEWGM2(double mz);
+double boundNOMADtau(double ms); //Its on Ut not Ut^2
+
+//double ps191general(double ms, double mz);
+double ps191general(double ms, double mz);
+double whatsmaxUXorder1(double ms, double mz);
+double GammaNeeded2DecayBefore(double mn, double en, double L, double L0);
+double Gvee(double U, double ms);
+double M2G (double m) ;
+double whatsmaxUXtau(double ms, double mz);
+
 typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
