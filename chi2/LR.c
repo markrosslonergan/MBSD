@@ -408,7 +408,7 @@ double boundUtau(double ms){
 
 
 double ps191general(double ms, double mzp){
-	return pow(boundPS191(ms)*(mzp/91.1876),2);
+	return boundPS191(ms)*pow((mzp/91.1876),2);
 }
 
 double M2G (double m) {

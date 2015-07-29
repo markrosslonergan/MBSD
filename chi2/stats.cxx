@@ -1459,10 +1459,10 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
 
-		if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0) )
-		{
-			logchiU = log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0);
-		}
+		//if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0) )
+		//{
+		//	logchiU = log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0);
+		//}
 
 		in.mS = temp_mS;
 		in.mZprime = temp_mZprime;
