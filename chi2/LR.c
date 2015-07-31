@@ -452,7 +452,7 @@ double whatsmaxUXorder1(double ms, double mz){
 	{ 
 		result = ewprecision*peaksearch;
 	} else {	
-		result = sqrt(ps191general(ms,mz));
+		result = boundPS191(ms)*sqrt(boundEWGM2(mz))*(mz/91.1876);
 	}
 return result;
 }
