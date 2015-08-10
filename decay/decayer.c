@@ -11,7 +11,7 @@
 #define NUMEVENTS 200000
 
 struct PDF_CHOICE { double Enu; double cosThnu; double Phinu; };
-typedef struct OBSERVABLES { double E_sum; double Th_sum; double AngSep; double E_sterile; double Th_sterile; double E_high; double Th_high; double E_low; double Th_low; } OBSERVABLES;
+typedef struct OBSERVABLES { double E_sum; double Th_sum; double AngSep; double E_sterile; double Th_sterile; double E_high; double Th_high; double E_low; double Th_low; double FS_AngSep; } OBSERVABLES;
 
 double pdf_function_test(double x,double y,double mS, double mZprime, void * pointer)
 {
@@ -184,10 +184,10 @@ int computeLabFrameVariables(OBSERVABLES * output, double mS, double Es, double 
 
 	double Pplus_E = gamma*(Ee + beta*Pe*cos(theta_plus));
 	double Pminus_E = gamma*(Ee + beta*Pe*cos(theta_minus));
-	double Pplus_x = Pe*cos(theta_plus)*cos(Phi);
-	double Pminus_x = Pe*cos(theta_minus)*cos(Phi);
-	double Pplus_y = Pe*cos(theta_plus)*sin(Phi);
-	double Pminus_y = Pe*cos(theta_minus)*sin(Phi);
+	double Pplus_x = Pe*sin(theta_plus)*cos(Phi);
+	double Pminus_x = Pe*sin(theta_minus)*cos(Phi);
+	double Pplus_y = Pe*sin(theta_plus)*sin(Phi);
+	double Pminus_y = Pe*sin(theta_minus)*sin(Phi);
 	double Pplus_z = gamma*(Pe*cos(theta_plus) + beta*Ee);
 	double Pminus_z = gamma*(Pe*cos(theta_minus) + beta*Ee);
 
@@ -202,6 +202,15 @@ int computeLabFrameVariables(OBSERVABLES * output, double mS, double Es, double 
 	output->E_sum = Pplus_E + Pminus_E; // energy is unaffected by rotation.
 	output->Th_sum = (180.0/M_PI)*acos(Pee[2]/sqrt(Pee[0]*Pee[0] + Pee[1]*Pee[1] + Pee[2]*Pee[2] )); 
 	output->AngSep = (180.0/M_PI)*acos((Pplus_x*Pminus_x + Pplus_y*Pminus_y + Pplus_z*Pminus_z)/(sqrt(Pplus_x*Pplus_x + Pplus_y*Pplus_y + Pplus_z*Pplus_z)*sqrt(Pminus_x*Pminus_x + Pminus_y*Pminus_y + Pminus_z*Pminus_z))); // opening angle is unaffected by rotation
+
+	if(Pminus_z > 0 && Pplus_z > 0)
+	{
+		output->FS_AngSep = (180.0/M_PI)*fabs(atan(Pplus_x/Pplus_z) - atan(Pminus_x/Pminus_z));
+	}
+	else 
+	{
+		output->FS_AngSep = 180- (180.0/M_PI)*fabs(atan(Pplus_x/Pplus_z) - atan(Pminus_x/Pminus_z));
+	}
 
 
 	if(Pplus_E < Pminus_E)
@@ -281,7 +290,7 @@ for(m=0;m<=NUMEVENTS-1;m++)
 	Obs.Th_sterile = events[m][1];
 
 	// E_sum / Th_sum / AngSep. / E_sterile / Th_sterile / E_high / Th_high/ E_low / Th_low
-	printf("%.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf\n",Obs.E_sum, Obs.Th_sum, Obs.AngSep, Obs.E_sterile, Obs.Th_sterile, Obs.E_high, Obs.Th_high, Obs.E_low, Obs.Th_low);
+	printf("%.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf\n",Obs.E_sum, Obs.Th_sum, Obs.AngSep, Obs.E_sterile, Obs.Th_sterile, Obs.E_high, Obs.Th_high, Obs.E_low, Obs.Th_low, Obs.FS_AngSep);
 
 }
 
