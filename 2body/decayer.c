@@ -220,8 +220,8 @@ for(m=0;m<=NUMEVENTS-1;m++)
 {
 	phiS = 2.0*M_PI*gsl_rng_uniform(r);
 	twobody_computeLabFrameVariables(&Obs, mS, mZprime, events[m][0], events[m][1], phiS, r);
-//	printf("%.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf\n", Obs.E_sum, Obs.Th_sum, Obs.AngSep, Obs.E_sterile, Obs.Th_sterile, Obs.E_high, Obs.Th_high, Obs.E_low, Obs.Th_low);
-	printf("%.5lf %.5lf\n", events[m][0], events[m][1]);
+	printf("%.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf %.5lf\n", Obs.E_sum, Obs.Th_sum, Obs.AngSep, Obs.E_sterile, Obs.Th_sterile, Obs.E_high, Obs.Th_high, Obs.E_low, Obs.Th_low);
+//	printf("%.5lf %.5lf\n", events[m][0], events[m][1]);
 }
 
 gsl_rng_free(r);
