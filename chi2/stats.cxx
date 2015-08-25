@@ -5,8 +5,11 @@
 #include <fstream>
 #include <string.h>
 #include <unistd.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #include "LR.h"
+#include "bounds.h"
 
 #define SIG_ON 1.0
 #define SIG_OFF 0.0
@@ -26,7 +29,7 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int m = 0;
 	char s[100];
 	char filename[500] = "../decay/data/\0";
-	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
+	sprintf(s,"%.4lf_%.4lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -554,7 +557,8 @@ BF_RESULT * fit_spectra(CL_input in, double cutEfficiency, double events[NUMEVEN
 //while(loopflag)
 //{
 	logchiU=logchiU_start;
-	while(E_sum < MCHI && A_sum < MCHI  && QE_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(true)	
+	//while(E_sum < MCHI && A_sum < MCHI  && QE_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI  && QE_sum < MCHI  && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI && QE_sum < MCHI) 
 	{
@@ -1057,7 +1061,8 @@ BF_RESULT * stats_fit_spectra(CL_input in, double cutEfficiency, double events[N
 //#########################################################################
 
 	logchiU=logchiU_start;
-	while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
+	while(true)	
+	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
@@ -1378,6 +1383,7 @@ BF_RESULT * stats_fit_spectra_indiv(CL_input in, double cutEfficiency, double ev
 {	
 	int which_var = in.which_var;
 
+
 	double zeta_b =0.0;
 	double sigma_s = 1.0;
 	double sigma_zeta = in.Sigma_Zeta;
@@ -1451,7 +1457,8 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 //#########################################################################
 
 	logchiU=logchiU_start;
-	while(sum <  MCHI && logchiU < log(whatsmaxUXorder1(temp_mS,temp_mZprime))/log(10.0))
+	while(true)
+	//while(sum <  MCHI && logchiU < log(whatsmaxUXorder1(temp_mS,temp_mZprime))/log(10.0))
 	//while(sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
 	//while(sum < MCHI && logchiU < log(sqrt(boundUpeaky(temp_mS,temp_mZprime)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0))
 	//while(sum < MCHI && logchiU < log(boundUpeaky(temp_mS,temp_mZprime)*sqrt(boundChi(temp_mZprime)))/log(10.0))
@@ -1459,7 +1466,7 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 	//while(E_sum < MCHI && A_sum < MCHI ) 
 	{
 
-		//if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0) )
+		// if( logchiU > log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0) )
 		//{
 		//	logchiU = log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0);
 		//}
@@ -1590,12 +1597,248 @@ output->E_bf = best_chiU;
 return output;
 }
 
+BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
+{	
+	int which_var = in.which_var;
+	const gsl_rng_type * T;
+	gsl_rng * r;
+	gsl_rng_env_setup();
+	T = gsl_rng_default;
+	r = gsl_rng_alloc (T);
+	//std::cout<<random_seed()<<std::endl;
+
+	//chi_histogrammer_indiv(in,0.01,0.02,cutEfficiency,events,which_var);
+
+
+	double zeta_b =0.0;
+	double sigma_s = 1.0;
+	double sigma_zeta = in.Sigma_Zeta;
+	
+	double N=0.0;
+	double lambda=0.0;
+	double sum =0.0;
+	
+	int BINS = which_BINS(which_var);
+	double spec_obs[BINS];
+	double spec_bkg[BINS];
+
+	if (which_var == 0)
+	{	
+		spec_obs[0] = 204.0;spec_obs[1] = 280.0;spec_obs[2] = 214.0;spec_obs[3] = 99.0;spec_obs[4] = 83.0;spec_obs[5] = 59.0;spec_obs[6] = 51.0;spec_obs[7] = 33.0;spec_obs[8] = 37.0;spec_obs[9] = 23.0; spec_obs[10] = 19.0;spec_obs[11] = 21.0;spec_obs[12] = 12.0; spec_obs[13] = 16.0; spec_obs[14] = 4.0;spec_obs[15] = 9.0; spec_obs[16] = 4.0; spec_obs[17] = 7.0; spec_obs[18] = 3.0;
+		spec_bkg[0] = 151.5;	spec_bkg[1] = 218.8;	spec_bkg[2] = 155.6;spec_bkg[3] = 108.7;spec_bkg[4] = 72.5;spec_bkg[5] = 57.6;spec_bkg[6] = 45;spec_bkg[7] = 38.5;spec_bkg[8] = 31.4;spec_bkg[9] = 22.2;spec_bkg[10] = 20.4;spec_bkg[11] = 17.2;		spec_bkg[12] = 14.1;	spec_bkg[13] = 10.2;	spec_bkg[14] = 9.1;	spec_bkg[15] = 8.2;	spec_bkg[16] = 5.6;	spec_bkg[17] = 5.7;	spec_bkg[18] = 2.9;
+
+
+	} else if (which_var ==1)
+	{
+	spec_obs[0] = 22; 	spec_obs[1] = 34; 	spec_obs[2] = 43; 	spec_obs[3] = 41; 	spec_obs[4] = 60; 	spec_obs[5] = 87; 	spec_obs[6] = 90; 	spec_obs[7] = 139; 	spec_obs[8] = 237; 	spec_obs[9] = 429;  	
+spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.1; 	spec_bkg[4] = 46.4; 	spec_bkg[5] = 63.1; 	spec_bkg[6] = 86.1; 	spec_bkg[7] = 121; 	spec_bkg[8] = 196.8; 	spec_bkg[9] = 390;
+
+
+	} else if (which_var ==2)
+	{
+      	spec_obs[0] =  232; spec_obs[1] = 156 ;spec_obs[2] = 156 ;spec_obs[3] = 79 ;spec_obs[4] = 81 ;spec_obs[5] = 70 ;spec_obs[6] = 63 ;spec_obs[7] = 65 ;spec_obs[8] = 62 ;spec_obs[9] = 34 ;spec_obs[10] = 70;    
+     spec_bkg[0] = 181.1 ;spec_bkg[1] = 108.4;spec_bkg[2] = 120.4;spec_bkg[3] = 64.2;spec_bkg[4] = 90.3; spec_bkg[5] = 67.7;spec_bkg[6] = 70.4;spec_bkg[7] = 57.5;spec_bkg[8] = 52.3; spec_bkg[9] = 39;spec_bkg[10] = 70.2;
+
+
+	}
+
+	double Gram[BINS];
+	for(int i=0;i<BINS;i++)
+	{
+		Gram[i]=0.0;
+	}
+	double tmp_tot=0.0;
+
+	double logchiU,chiU,contEfficiency;
+	double best_contEfficiency=1e50;
+	double best_N_events=1e-50;
+	double best_chiU = 1e50;
+	double best = 1e5;
+	double temp_mS = in.mS;
+	double temp_mZprime = in.mZprime;
+
+	double N_events=0;
+	double N_sig_events=0;
+	double N_bg_events=0;
+	double best_N_sig_events = 0;
+	double best_N_bg_events = 0;
+
+	double logchiU_step = 0.025;
+	double logchiU_start = -7.0;
+//#########################################################################
+
+        std::vector<double > VGram(Gram, Gram + BINS);
+        
+        std::vector<double > bf_zeta_b;  
+        double bf_chi ;
+
+// ########################   Calculate LogLiki (Dchi^2) for Background only with SYtematics ################
+
+        std::vector<double > Zeros(EBINS, 0.0);
+        std::vector<double > BF_bkg_only_zeta_b = {0};
+        double BF_bkg_only_chi = 10000;
+        nuisMarginalize(& BF_bkg_only_zeta_b,& BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
+
+//######################################################################### BEGIN MCMC
+
+	double fudge1=1;
+	std::vector<double > mcS = {0.2,0.2,0.2};
+	std::vector<double > mcMin = {-5,-5,-5};
+	std::vector<double > mcMax = {fudge1*log(boundBASEu(temp_mS))/log(10.0),0.0,fudge1*log(boundBASEzp(temp_mZprime))/log(10.0)};
+
+	std::vector<double > mcBestVar={99,99,99};
+	std::vector<double > mcVarLast = {mcMin[0]+gsl_rng_uniform(r)*(mcMax[0]-mcMin[0]),mcMin[1]+gsl_rng_uniform(r)*(mcMax[1]-mcMin[1]),mcMin[2]+gsl_rng_uniform(r)*(mcMax[2]-mcMin[2])};
+	std::vector<double > mcTempVar = mcVarLast;
+	
+
+	int mcCount=0; int mcRawCount = 0;
+	int mcNumRun = 200;
+	double mcSumLast=1e10;
+	double mcTemp=0.4;
+	double mcProb=0.0;
+
+	int stuckCount=0; int mcMaxStuck = -1;
+
+	double mcGenRan = gsl_rng_uniform(r);
+	//std::cout<<"STATING WHILE"<<std::endl;
+
+
+	while(mcCount < mcNumRun)
+	{
+		mcRawCount++;
+		//if( mcCount == 100){
+		//	mcS = {0.2/log(double(mcCount+1)+1),0.2/log(double(mcCount+1)+1),0.2/log(double(mcCount+1)+1)};
+		//}	
+			
+			in.mS = temp_mS;
+			in.mZprime = temp_mZprime;
+
+			sum=0.0;
+
+			contEfficiency = histogrammer_indiv2(in,pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),cutEfficiency,events,Gram,which_var);
+		       	        VGram.assign(Gram, Gram+BINS);
+		                nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+		                zeta_b=bf_zeta_b[0];
+
+			N_events = 0;
+			N_sig_events = 0;
+			N_bg_events = 0;
+
+			int bin = 0;
+			double temp_sig,temp_bg;
+
+
+
+		if(bound_is_legit_tau(pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),temp_mS,temp_mZprime) ) {  
+			//fake >
+			// Then it will never be able to decay before so be below the bound, so while its not lets		
+			// make a fake chi (bad) for it so MCMC never visits it.
+			sum = 1e10;
+			stuckCount++;
+
+		} else {
+
+
+				for(bin=0;bin<BINS;bin++)
+				{
+					temp_sig = sigma_s*Gram[bin];
+					temp_bg = (1.0+zeta_b)*spec_bkg[bin];
+					lambda = temp_sig + temp_bg;
+					N = spec_obs[bin]; //MB has seen O[] events.
+				
+					N_events += lambda;
+					N_sig_events += temp_sig;
+					N_bg_events += temp_bg;
+				//	E_sum+= (lambda-N)*(lambda-N)/lambda;
+					sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+				}
+			//a guesstimate of the systematic error on the background.
+			//double sigma_zeta = 0.05;
+			// add prior on zeta.
+
+					sum += pow((zeta_b/sigma_zeta),2.0);
+		}
+
+		if(stuckCount >= mcMaxStuck){
+			//change the mcS[i] stepsize
+		}
+
+
+
+
+			if(sum < best)
+			{ 
+				best=sum; 
+				best_contEfficiency = contEfficiency; 
+				best_N_events = N_events;
+				best_N_sig_events = N_sig_events;
+				best_N_bg_events = N_bg_events;
+				for(int i=0; i<=2;i++){ //Initialise MCMC variables
+					mcBestVar[i] = mcTempVar[i];
+				}
+			}
+
+
+		
+		
+		mcTemp=1/(0.1*double(mcCount+1)+1)+0.05;
+		mcGenRan = gsl_rng_uniform(r);
+		mcProb = exp(-(sum-mcSumLast)/mcTemp); //Probability of accepting a new point in the chain.
+
+
+		std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" "<<mcTempVar[2]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<std::endl;
+
+		if(mcGenRan < mcProb) { //18.0496
+		//  if(sum<mcSumLast){ 18.0492
+			mcSumLast=sum;
+			mcVarLast=mcTempVar;
+			mcCount++;
+			sum = 0.0;
+		} //otherwise choose a new point
+
+		for(int i=0; i<=2;i++){ //Initialise MCMC variables
+			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(gsl_rng_uniform(r)-0.5)*(mcMin[i]-mcMax[i]);
+			 while(mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i]){
+						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(gsl_rng_uniform(r)-0.5)*(mcMin[i]-mcMax[i]);
+			 } 		
+		}
+
+
+		//std::cout<<decBeforeL<<"  "<<decBeforeR<<"  "<<PSL<<"  "<<PSR<<std::endl;
+		if( mcCount == 250 ){
+			mcS = {0.02,0.02,0.02};
+				mcSumLast=best; 
+				for(int i=0; i<=2;i++){ //Initialise MCMC variables
+					mcTempVar[i]=mcBestVar[i] ; 
+				}
+		}
+
+		
+
+	}
+
+      //  if(fabs(best-BF_bkg_only_chi) < 1e-3) { best=BF_bkg_only_chi; }
+
+
+//	std::cout<<E_check<<" "<<A_check<<std::endl;
+	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" which variable:  "<<which_var<<" : "<<best_N_events<<" = ("<<best_N_sig_events<<" + "<<best_N_bg_events<<")"<<std::endl;
+		//	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<38.9753-A_best<<" "<<A_best_chiU<<std::endl;
+//std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
+        std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<"  best "<<best<<" start: "<<mcBestVar[0]<<" "<<mcBestVar[1]<<" "<<mcBestVar[2]<<" "<<best_contEfficiency<<" "<<cutEfficiency<<std::endl;
+//	std::cout<<log(boundU(temp_mS))/log(10.0)<<"  "<<log(boundUtau(temp_mS))/log(10.0)<<"  "<<log(boundChi(temp_mZprime))/log(10.0)<<std::endl;
+
+BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
+output->E_bf = best_chiU;
+
+return output;
+}
 
 
 int main(int argc, char * argv[])
 {
 
-	//std::cout<<whatsmaxUX(0.08,0.2)<<std::endl;		
+	//std::cout<<whatsmaxUXorder1(0.09,0.3)<<"  "<<whatsmaxUXorder1(0.03,0.6)<<"  "<<whatsmaxUXorder1(0.05,0.45)<<std::endl;		
 
 	static CL_input in;
 	in.eCut = 0.0;
@@ -1777,7 +2020,7 @@ int main(int argc, char * argv[])
 
 		} else if (modeFlag == 10) {
 			
-			stats_fit_spectra_indiv(in,cutEfficiency,events);
+			mcmc_stats_fit_spectra_indiv(in,cutEfficiency,events);
 
 
 		} else { std::cout<<"BAD THING!"<<std::endl; }
