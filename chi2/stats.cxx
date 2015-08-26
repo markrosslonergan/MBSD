@@ -35,7 +35,7 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int m = 0;
 	char s[100];
 	char filename[500] = "../decay/data/\0";
-	sprintf(s,"%.4lf_%.4lf.dat", mS, mZprime);
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -1688,43 +1688,66 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 //######################################################################### BEGIN MCMC
 
 	double fudge1=1;
-	std::vector<double > mcS = {0.2,0.2,0.2};
+	std::vector<double > mcS = {0.5,0.5,0.51};
 	std::vector<double > mcMin = {-5,-5,-5};
 	std::vector<double > mcMax = {fudge1*log(boundBASEu(temp_mS))/log(10.0),0.0,fudge1*log(boundBASEzp(temp_mZprime))/log(10.0)};
 
 	std::vector<double > mcBestVar={99,99,99};
 	std::vector<double > mcVarLast = {mcMin[0]+gsl_rng_uniform(r)*(mcMax[0]-mcMin[0]),mcMin[1]+gsl_rng_uniform(r)*(mcMax[1]-mcMin[1]),mcMin[2]+gsl_rng_uniform(r)*(mcMax[2]-mcMin[2])};
+	//std::vector<double > mcS = {0.2,0.2};
+	//std::vector<double > mcMin = {-5,-5};
+	//std::vector<double > mcMax = {fudge1*log(boundBASEu(temp_mS))/log(10.0),fudge1*log(boundBASEzp(temp_mZprime))/log(10.0)};
+	//std::vector<double > mcBestVar={99,99};
+	//std::vector<double > mcVarLast = {mcMin[0]+gsl_rng_uniform(r)*(mcMax[0]-mcMin[0]),mcMin[1]+gsl_rng_uniform(r)*(mcMax[1]-mcMin[1])};
+
 	std::vector<double > mcTempVar = mcVarLast;
-	
+
+	int mcNumVar = mcS.size();
+
 
 	int mcCount=0; int mcRawCount = 0;
-	int mcNumRun = 200;
+	int mcNumRun = 100;
 	double mcSumLast=1e10;
 	double mcTemp=0.4;
 	double mcProb=0.0;
+
+	bool endStep = false;
+	int endStart = 0;
+	int endEnd = 1000; //How many function calls after main run, for endPhase
+	
 
 	int stuckCount=0; int mcMaxStuck = -1;
 
 	double mcGenRan = gsl_rng_uniform(r);
 	//std::cout<<"STATING WHILE"<<std::endl;
+	
+	double finalScale = getTotalNumEvents(in);
 
 
-	while(mcCount < mcNumRun)
+	while(mcCount < mcNumRun || (mcRawCount - endStart) < endEnd )
 	{
-		mcRawCount++;
-		//if( mcCount == 100){
-		//	mcS = {0.2/log(double(mcCount+1)+1),0.2/log(double(mcCount+1)+1),0.2/log(double(mcCount+1)+1)};
-		//}	
+		        mcRawCount++;
+
+		if( mcCount == mcNumRun-1){
+			endStep = true;
+			mcS = {0.01,0.01,0.01};
+			mcVarLast=mcBestVar;
+			mcSumLast=best;
+			endStart = mcRawCount;
+		} 	
+
+		if(mcSumLast < 1e5){ mcS={0.2,0.2,0.2};}
 			
 			in.mS = temp_mS;
 			in.mZprime = temp_mZprime;
 
 			sum=0.0;
 
-			contEfficiency = histogrammer_indiv2(in,pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),cutEfficiency,events,Gram,which_var);
-		       	        VGram.assign(Gram, Gram+BINS);
-		                nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
-		                zeta_b=bf_zeta_b[0];
+			contEfficiency = histogrammer_indiv2(in,pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),cutEfficiency,events,Gram,which_var,finalScale);
+			//contEfficiency   = histogrammer_indiv2(in,pow(10,mcTempVar[0]),1.0, pow(10,mcTempVar[1]),cutEfficiency,events,Gram,which_var,finalScale);
+		       	VGram.assign(Gram, Gram+BINS);
+		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+		        zeta_b = bf_zeta_b[0];
 
 			N_events = 0;
 			N_sig_events = 0;
@@ -1735,16 +1758,14 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 
 
 
-		if(bound_is_legit_tau(pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),temp_mS,temp_mZprime) ) {  
-			//fake >
+		if(!bound_is_legit_tau(pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),pow(10,mcTempVar[2]),temp_mS,temp_mZprime) ) {  
+	//	if(!bound_is_legit_order1(pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),temp_mS,temp_mZprime) ) {  
 			// Then it will never be able to decay before so be below the bound, so while its not lets		
 			// make a fake chi (bad) for it so MCMC never visits it.
-			sum = 1e10;
+			sum = 1e6;
 			stuckCount++;
 
 		} else {
-
-
 				for(bin=0;bin<BINS;bin++)
 				{
 					temp_sig = sigma_s*Gram[bin];
@@ -1755,21 +1776,15 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 					N_events += lambda;
 					N_sig_events += temp_sig;
 					N_bg_events += temp_bg;
-				//	E_sum+= (lambda-N)*(lambda-N)/lambda;
 					sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 				}
-			//a guesstimate of the systematic error on the background.
-			//double sigma_zeta = 0.05;
-			// add prior on zeta.
-
-					sum += pow((zeta_b/sigma_zeta),2.0);
+			
+				sum += pow((zeta_b/sigma_zeta),2.0); //add on sys bkg
 		}
 
-		if(stuckCount >= mcMaxStuck){
+		//if(stuckCount >= mcMaxStuck){
 			//change the mcS[i] stepsize
-		}
-
-
+		//}
 
 
 			if(sum < best)
@@ -1779,66 +1794,79 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 				best_N_events = N_events;
 				best_N_sig_events = N_sig_events;
 				best_N_bg_events = N_bg_events;
-				for(int i=0; i<=2;i++){ //Initialise MCMC variables
+				for(int i=0; i<=mcNumVar;i++){ //Initialise MCMC variables
 					mcBestVar[i] = mcTempVar[i];
 				}
 			}
 
 
 		
+		if(!endStep){
+			mcTemp= 1/(0.1*double(mcCount+1)+1)+0.05;
+			mcGenRan = gsl_rng_uniform(r);
+			mcProb = exp(-(sum-mcSumLast)/mcTemp); //Probability of accepting a new point in the chain.
+
+			if(-(sum-mcSumLast)/mcTemp < -10.0)
+			{ 
+				mcProb = 0;
+			} else if( sum < mcSumLast)
+			{ 
+				mcProb = 1;
+			}
+
+
+			std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" "<<mcTempVar[2]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" NOR"<<std::endl;
+		//	std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" NOR"<<std::endl;
+
 		
-		mcTemp=1/(0.1*double(mcCount+1)+1)+0.05;
-		mcGenRan = gsl_rng_uniform(r);
-		mcProb = exp(-(sum-mcSumLast)/mcTemp); //Probability of accepting a new point in the chain.
+			if(mcGenRan < mcProb) { 
+				mcSumLast=sum;
+				mcVarLast=mcTempVar;
+				mcCount++;
+				sum = 0.0;
+			} //otherwise choose a new point
+
+		} else {  //###################### EndStepOnly ######################
+
+			std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" "<<mcTempVar[2]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" END"<<std::endl;
+		//	std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" END"<<std::endl;
+
+			  if(sum<mcSumLast){ 
+				mcSumLast=sum;
+				mcVarLast=mcTempVar;
+				mcCount++;
+				sum = 0.0;
+			} //otherwise choose a new point
+
+		} 	// ################## End of End Step ####################
 
 
-		std::cout<<mcCount<<" T: "<<mcTemp<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var "<<mcTempVar[0]<<" "<<mcTempVar[1]<<" "<<mcTempVar[2]<<" BEST: "<<best<<" raw#: "<<mcRawCount<<std::endl;
 
-		if(mcGenRan < mcProb) { //18.0496
-		//  if(sum<mcSumLast){ 18.0492
-			mcSumLast=sum;
-			mcVarLast=mcTempVar;
-			mcCount++;
-			sum = 0.0;
-		} //otherwise choose a new point
-
-		for(int i=0; i<=2;i++){ //Initialise MCMC variables
-			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(gsl_rng_uniform(r)-0.5)*(mcMin[i]-mcMax[i]);
+		for(int i=0; i < mcNumVar;i++){ //Initialise MCMC variables
+			 mcGenRan= gsl_rng_uniform(r);
+			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
 			 while(mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i]){
-						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(gsl_rng_uniform(r)-0.5)*(mcMin[i]-mcMax[i]);
+
+						 mcGenRan = gsl_rng_uniform(r);
+						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
 			 } 		
 		}
 
 
-		//std::cout<<decBeforeL<<"  "<<decBeforeR<<"  "<<PSL<<"  "<<PSR<<std::endl;
-		if( mcCount == 250 ){
-			mcS = {0.02,0.02,0.02};
-				mcSumLast=best; 
-				for(int i=0; i<=2;i++){ //Initialise MCMC variables
-					mcTempVar[i]=mcBestVar[i] ; 
-				}
-		}
 
-		
-
-	}
-
-      //  if(fabs(best-BF_bkg_only_chi) < 1e-3) { best=BF_bkg_only_chi; }
+	} // end MCMC while loop
 
 
-//	std::cout<<E_check<<" "<<A_check<<std::endl;
 	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<" which variable:  "<<which_var<<" : "<<best_N_events<<" = ("<<best_N_sig_events<<" + "<<best_N_bg_events<<")"<<std::endl;
-		//	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<38.9753-A_best<<" "<<A_best_chiU<<std::endl;
-//std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<65.1554-E_best<<" "<<E_best_chiU<<" "<<best_E_contEfficiency<<" "<<39.9753-A_best<<" "<<A_best_chiU<<" "<<best_A_contEfficiency<<" "<<cutEfficiency<<std::endl;
         std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<"  best "<<best<<" start: "<<mcBestVar[0]<<" "<<mcBestVar[1]<<" "<<mcBestVar[2]<<" "<<best_contEfficiency<<" "<<cutEfficiency<<std::endl;
-//	std::cout<<log(boundU(temp_mS))/log(10.0)<<"  "<<log(boundUtau(temp_mS))/log(10.0)<<"  "<<log(boundChi(temp_mZprime))/log(10.0)<<std::endl;
+       // std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<"  best "<<best<<" start: "<<mcBestVar[0]<<" "<<mcBestVar[1]<<" "<<best_contEfficiency<<" "<<cutEfficiency<<std::endl;
+
 
 BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
 output->E_bf = best_chiU;
 
 return output;
 }
-
 
 int main(int argc, char * argv[])
 {

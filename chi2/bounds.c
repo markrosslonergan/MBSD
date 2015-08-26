@@ -19,12 +19,25 @@ return (100*1e5*1e9*m)/1.973;
 double Gvee(double U, double ms){
 	double PI=3.14159;
 	double GF=0.00001166;
-	return U*U*pow(ms,5)*GF*GF/(96*PI*PI*PI);
+	return U*U*ms*ms*ms*ms*ms*GF*GF/(96*PI*PI*PI);
 }
 
 double GammaNeeded2DecayBefore(double mn, double en, double L, double L0){
 
-	double U=1;
+	double U = boundPS191u(mn);
+
+	double BR=0.126469;
+
+	double Gtot = Gvee(U,mn);
+	double pn = sqrt(en*en-mn*mn);
+	double B = exp(-Gtot*mn*M2G(L)/pn)*(1-exp(-mn*M2G(L0)*Gtot/pn))*BR;
+	double A = L0/L;
+	return -pn/(mn*M2G(L))*gsl_sf_lambert_Wm1(-B/A);
+}
+
+double GammaNeeded2DecayBeforeOrder1(double mn, double en, double L, double L0){
+
+	double U = boundNOMADt(mn);
 
 	double BR=0.126469;
 
@@ -44,6 +57,23 @@ bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp 
 		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,2, 128, 12)/Gvee(1,ms)*pow(mzp/91.0,4))
 		 && 
 		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,18, 825, 7)/Gvee(1,ms)*pow(mzp/91.0,4)) 
+		 && 	
+		(chi <= sqrt(boundBABARzp(mzp)))
+	){
+	ans=true;
+	}
+
+	return ans;
+}
+
+bool bound_is_legit_order1(double up, double chi, double ms, double mzp ){
+
+	bool ans = false;
+	
+	if( 	
+		(up*1.0*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBeforeOrder1(ms,2, 128, 12)/Gvee(1,ms)*pow(mzp/91.0,4))
+		 && 
+		((pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBeforeOrder1(ms,18, 825, 7)/Gvee(1,ms)*pow(mzp/91.0,4)) 
 		 && 	
 		(chi <= sqrt(boundBABARzp(mzp)))
 	){

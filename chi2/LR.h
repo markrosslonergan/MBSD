@@ -8,7 +8,7 @@
 #include <string>
 
 #define NUMEVENTS 40000
-#define NUM_EVENT_OBS 7 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
+#define NUM_EVENT_OBS 10 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
 
 #define EBINS 19
 #define COSBINS 10
@@ -35,8 +35,8 @@ unsigned long int random_seed();
 double decayProb(CL_input input, double chiU, double Es);
 double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[]);
 double histogrammer_indiv(CL_input in, double chiUp, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var);
-double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var);
-double chi_histogrammer_indiv(CL_input in, double chiUp, double chiUd, double cutEff, const double events[][NUM_EVENT_OBS], int which_var);
+double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var, double finalScale);
+
 int printEGram(double eGram[]);
 int printCosGram(double cosGram[]);
 int printQeGram(double qeGram[]);
@@ -46,6 +46,9 @@ double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *
 double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
+
+
+double intpow( double base, int exponent );
 
 
 #endif

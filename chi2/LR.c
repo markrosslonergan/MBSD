@@ -8,10 +8,23 @@
 #include <iomanip>
 #include <sys/time.h>
 #include <gsl/gsl_sf_lambert.h>
-
+//#include <gsl/pow.h>
 
 #include "LR.h"
 //#include "Minuit2/FCNBase.h"
+
+
+double intpow( double base, int exponent )
+{
+int i;
+double out = base;
+for( i=1 ; i < exponent ; i++ )
+{
+out *= base;
+}
+return out;
+}
+
 
 double getTotalNumEvents(CL_input input)
 {
@@ -30,7 +43,7 @@ double getTotalNumEvents(CL_input input)
 	int m = 0;
 	char s[100];
 	char filename[500] = "../MC/HIST_\0";
-	sprintf(s,"%.4lf_%.4lf.dat", mS, mZprime);
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Total Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -144,7 +157,7 @@ double QEfromEandCos(double Evis, double costh){
 	double Q2=2*ans1*EvisCor*(1-beta*costh)-Me*Me;
 	
 	//return  0.5*((2.0*Mn+EB)*Evis-(Dms+2*Mn*EB+EB*EB+Me*Me))/((Mn+EB)-Evis+sqrt(EvisCor*Evis-Me*Me)*costh);
-	return ans1-(c1+c2*Q2+c3*Q2*Q2+c4*pow(Q2,3));
+	return ans1-(c1+c2*Q2+c3*Q2*Q2+c4*intpow(Q2,3));
 }
 
 
@@ -158,20 +171,20 @@ double decayProb(CL_input input, double chiU, double Es)
 
 	double alpha = mS*mS/(mZprime*mZprime-mS*mS);
 
-	double prefac = (chiU*chiU*(1.0/(137.05*137.05))*alpha*alpha*mS/(4.0*pow(4.0*M_PI,3.0)*g1*g1));
-	//double func = (3.0/(2.0*alpha*alpha*alpha))*((2+alpha-3*alpha*alpha)/(1+alpha))+(4*alpha*alpha-3)*log(1.0+alpha)/pow(alpha,4.0);
+	double prefac = (chiU*chiU*(1.0/(137.05*137.05))*alpha*alpha*mS/(4.0*intpow(4.0*M_PI,3.0)*g1*g1));
+	//double func = (3.0/(2.0*alpha*alpha*alpha))*((2+alpha-3*alpha*alpha)/(1+alpha))+(4*alpha*alpha-3)*log(1.0+alpha)/intpow(alpha,4.0);
 	double func;
-	if(alpha < 0.01)
+	if(alpha < 0.001)
 	{
 	
 		double func_perturb_0 = (1.0/(1.0+alpha))*(7.0/4.0 + 41.0/60.0*alpha); 
 
-		double func_perturb_rest = -0.18333*pow(alpha,2.0)+0.22857*pow(alpha,3.0)-0.23274*pow(alpha,4.0)+0.22421*pow(alpha,5.0)-0.21190*pow(alpha,6.0)+0.19899*pow(alpha,7.0)-0.18662*pow(alpha,8.0)+0.17517*pow(alpha,9.0)-0.16475*pow(alpha,10.0)+0.15531*pow(alpha,11.0);
+		double func_perturb_rest = -0.18333*intpow(alpha,2)+0.22857*intpow(alpha,3)-0.23274*intpow(alpha,4)+0.22421*intpow(alpha,5)-0.21190*intpow(alpha,6)+0.19899*intpow(alpha,7)-0.18662*intpow(alpha,8)+0.17517*intpow(alpha,9)-0.16475*intpow(alpha,10)+0.15531*intpow(alpha,11);
 		func = func_perturb_0+func_perturb_rest;
 	}
 	else 
 	{		
-		func = (3.0/(2.0*pow(alpha,3.0)))*(2+alpha-3*pow(alpha,2.0))/(1.0+alpha) + (4.0*alpha*alpha-3.0)*(log(1+alpha)/log(exp(1.0)))/pow(alpha,4.0);
+		func = (3.0/(2.0*intpow(alpha,3)))*(2+alpha-3*alpha*alpha)/(1.0+alpha) + (4.0*alpha*alpha-3.0)*(log(1+alpha)/log(exp(1.0)))/intpow(alpha,4);
 	}
 
 
@@ -179,6 +192,7 @@ double decayProb(CL_input input, double chiU, double Es)
 
 return 1.0-exp(-(0.51e16)*prefac*func*L*mS/Es);
 } 
+
 
 double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[])
 {
@@ -284,8 +298,9 @@ double histogrammer_indiv(CL_input in, double chiU,  double cutEff, const double
 	double probTotal = 0.0;
 	double prob = 0.0;
 	int qeWhichBin = 0;
+	
 
-	for(i=0;i<NUMEVENTS;i++)
+	for(i=0;i<1000;i++)
 	{
 		if(events[i][0] > 1e-4)
 		{			
@@ -343,10 +358,8 @@ return probTotal/total;
 }
 
 
-double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var)
+double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double cutEff, const double events[][NUM_EVENT_OBS], double Gram[], int which_var, double finalScale)
 {
-	double finalScale = getTotalNumEvents(in);
-
 	int BINS=which_BINS(which_var);
 	
 	int i=0;
@@ -372,35 +385,38 @@ double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double
 			
 			
 			prob = decayProb(in,Ud*chi,events[i][3]);
-			if( which_var ==0 ){
-
-				
-	
-				      	Gram[EtoBin(events[i][0])] += prob;
+		
+			switch(which_var) {
+				case 0:
+					Gram[EtoBin(events[i][0])] += prob;
 					total+=1.0;
 					probTotal+=prob;
-	
-			} else if (which_var==1)
-		       	{
+					break;
+				case 1:
 					Gram[CostoBin(cos((M_PI/180.0)*events[i][1]))] += prob;
 					total+=1.0;
 					probTotal+=prob;
-			}  else if (which_var==2) 
-			{
-				qeWhichBin = QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])));
+					break;
+				case 2:
+					qeWhichBin = QEtoBin(QEfromEandCos(events[i][0],cos((M_PI/180.0)*events[i][1])));
 	
-				if(qeWhichBin == 999) //Error Bin 
-				{
-					prob=0;
-					total+=0.0;
-				} else {
-					Gram[qeWhichBin] += prob;	
-					total+=1.0;
-					probTotal+=prob;
-				}
+					if(qeWhichBin == 999) //Error Bin 
+					{
+						prob=0;
+						total+=0.0;
+					} else {
+						Gram[qeWhichBin] += prob;	
+						total+=1.0;
+						probTotal+=prob;
+					}
+					break;
+
+				default:							
+					std::cout<<"ERROR: which_var in histogrammer must be 0(E), 1(A) or 2(QE)"<<std::endl;
 			}
-			
-		
+
+
+
 //		        printf("event %d: prob = %.5g\tprobTot = %.5g\n",i,prob,probTotal);
 
 		}
@@ -417,111 +433,7 @@ double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double
 return probTotal/total;
 }
 
-
-double chi_histogrammer_indiv(CL_input in, double chiUp, double chiUd, double cutEff, const double events[][NUM_EVENT_OBS], int which_var)
-{
-	//while(sum < MCHI && logchiU < log(sqrt(boundU(temp_mS)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(sum < MCHI && logchiU < log(sqrt(boundUpeaky(temp_mS,temp_mZprime)*boundUtau(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0))
-	//while(sum < MCHI && logchiU < log(boundUpeaky(temp_mS,temp_mZprime)*sqrt(boundChi(temp_mZprime)))/log(10.0))
-	//while(E_sum < MCHI && A_sum < MCHI && logchiU < log(sqrt(boundU(temp_mS))*sqrt(boundChi(temp_mZprime)))/log(10.0)) 
-	//while(E_sum < MCHI && A_sum < MCHI ) 
-
-	double zeta_b =0.0;
-	double sigma_s = 1.0;
-	double sigma_zeta = in.Sigma_Zeta;
-	
-	double N=0.0;
-	double lambda=0.0;
-	
-	int BINS = which_BINS(which_var);
-	double spec_obs[BINS];
-	double spec_bkg[BINS];
-
-	if (which_var == 0)
-	{	
-		spec_obs[0] = 204.0;spec_obs[1] = 280.0;spec_obs[2] = 214.0;spec_obs[3] = 99.0;spec_obs[4] = 83.0;spec_obs[5] = 59.0;spec_obs[6] = 51.0;spec_obs[7] = 33.0;spec_obs[8] = 37.0;spec_obs[9] = 23.0; spec_obs[10] = 19.0;spec_obs[11] = 21.0;spec_obs[12] = 12.0; spec_obs[13] = 16.0; spec_obs[14] = 4.0;spec_obs[15] = 9.0; spec_obs[16] = 4.0; spec_obs[17] = 7.0; spec_obs[18] = 3.0;
-		spec_bkg[0] = 151.5;	spec_bkg[1] = 218.8;	spec_bkg[2] = 155.6;spec_bkg[3] = 108.7;spec_bkg[4] = 72.5;spec_bkg[5] = 57.6;spec_bkg[6] = 45;spec_bkg[7] = 38.5;spec_bkg[8] = 31.4;spec_bkg[9] = 22.2;spec_bkg[10] = 20.4;spec_bkg[11] = 17.2;		spec_bkg[12] = 14.1;	spec_bkg[13] = 10.2;	spec_bkg[14] = 9.1;	spec_bkg[15] = 8.2;	spec_bkg[16] = 5.6;	spec_bkg[17] = 5.7;	spec_bkg[18] = 2.9;
-
-
-	} else if (which_var ==1)
-	{
-	spec_obs[0] = 22; 	spec_obs[1] = 34; 	spec_obs[2] = 43; 	spec_obs[3] = 41; 	spec_obs[4] = 60; 	spec_obs[5] = 87; 	spec_obs[6] = 90; 	spec_obs[7] = 139; 	spec_obs[8] = 237; 	spec_obs[9] = 429;  	
-spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.1; 	spec_bkg[4] = 46.4; 	spec_bkg[5] = 63.1; 	spec_bkg[6] = 86.1; 	spec_bkg[7] = 121; 	spec_bkg[8] = 196.8; 	spec_bkg[9] = 390;
-
-
-	} else if (which_var ==2)
-	{
-      	spec_obs[0] =  232; spec_obs[1] = 156 ;spec_obs[2] = 156 ;spec_obs[3] = 79 ;spec_obs[4] = 81 ;spec_obs[5] = 70 ;spec_obs[6] = 63 ;spec_obs[7] = 65 ;spec_obs[8] = 62 ;spec_obs[9] = 34 ;spec_obs[10] = 70;    
-     spec_bkg[0] = 181.1 ;spec_bkg[1] = 108.4;spec_bkg[2] = 120.4;spec_bkg[3] = 64.2;spec_bkg[4] = 90.3; spec_bkg[5] = 67.7;spec_bkg[6] = 70.4;spec_bkg[7] = 57.5;spec_bkg[8] = 52.3; spec_bkg[9] = 39;spec_bkg[10] = 70.2;
-
-
-	}
-
-	double Gram[BINS];
-	for(int i=0;i<BINS;i++)
-	{
-		Gram[i]=0.0;
-	}
-	double tmp_tot=0.0;
-
-	double best_contEfficiency=1e50;
-	double best_N_events=1e-50;
-	double best_chiU = 1e50;
-	double best = 1e4;
-	double temp_mS = in.mS;
-	double temp_mZprime = in.mZprime;
-
-	double N_events=0;
-	double N_sig_events=0;
-	double N_bg_events=0;
-	double best_N_sig_events = 0;
-	double best_N_bg_events = 0;
-
-	double logchiU_step = 0.025;
-	double logchiU_start = -7.0;		
-
-		std::vector<double > VGram(Gram, Gram + BINS);
-        
-       		std::vector<double > bf_zeta_b;  
-       		double bf_chi ;
-
-		in.mS = temp_mS;
-		in.mZprime = temp_mZprime;
-		double sum=0.0;
-
-		 	histogrammer_indiv2(in,chiUp,chiUd,0,cutEff,events,Gram,which_var);
-                        VGram.assign(Gram, Gram+BINS);
-                        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
-                        zeta_b=bf_zeta_b[0];
-		N=0;		
-		N_events = 0;
-		N_sig_events = 0;
-		N_bg_events = 0;
-
-		int bin = 0;
-		double temp_sig,temp_bg;
-	//	if (sigma_s > 1e-5){
-			for(bin=0;bin<BINS;bin++)
-			{
-				temp_sig = sigma_s*Gram[bin];
-				temp_bg = (1.0+zeta_b)*spec_bkg[bin];
-				lambda = temp_sig + temp_bg;
-				N = spec_obs[bin]; //MB has seen O[] events.
-				
-				N_events += lambda;
-				N_sig_events += temp_sig;
-				N_bg_events += temp_bg;
-			//	E_sum+= (lambda-N)*(lambda-N)/lambda;
-				sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
-			}
-
-		// add prior on zeta.
-		sum += pow((zeta_b/sigma_zeta),2.0);
-
-	return sum;
-}
-
-
+// ########################################### Onto Minimizer #############################
 
 
 
