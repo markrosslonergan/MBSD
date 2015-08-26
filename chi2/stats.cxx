@@ -34,7 +34,7 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "../decay/data/\0";
+	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
@@ -1605,6 +1605,7 @@ return output;
 BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {	
 	int which_var = in.which_var;
+
 	const gsl_rng_type * T;
 	gsl_rng * r;
 	gsl_rng_env_setup();
@@ -1688,7 +1689,7 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 //######################################################################### BEGIN MCMC
 
 	double fudge1=1;
-	std::vector<double > mcS = {0.5,0.5,0.51};
+	std::vector<double > mcS = {0.5,0.5,0.5};
 	std::vector<double > mcMin = {-5,-5,-5};
 	std::vector<double > mcMax = {fudge1*log(boundBASEu(temp_mS))/log(10.0),0.0,fudge1*log(boundBASEzp(temp_mZprime))/log(10.0)};
 
@@ -1724,16 +1725,17 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 	double finalScale = getTotalNumEvents(in);
 
 
-	while(mcCount < mcNumRun || (mcRawCount - endStart) < endEnd )
+	while(mcCount < mcNumRun || (mcRawCount - endStart) < endEnd && mcRawCount < 5000 )
 	{
 		        mcRawCount++;
 
-		if( mcCount == mcNumRun-1){
+		if(mcCount == mcNumRun){
 			endStep = true;
 			mcS = {0.01,0.01,0.01};
 			mcVarLast=mcBestVar;
 			mcSumLast=best;
 			endStart = mcRawCount;
+			
 		} 	
 
 		if(mcSumLast < 1e5){ mcS={0.2,0.2,0.2};}
@@ -1863,9 +1865,26 @@ spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.
 
 
 BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
-output->E_bf = best_chiU;
 
+switch(which_var) 
+{
+	case 0:
+		output->E_bf = best_chiU;
+		break;
+	case 1:
+		output->A_bf = best_chiU;
+		break;
+	case 2:
+		output->QE_bf = best_chiU;
+		break;
+
+	default:							
+		std::cout<<"ERROR: which_var in mcmc must be 0(E), 1(A) or 2(QE)"<<std::endl;
+}
+
+gsl_rng_free(r);
 return output;
+
 }
 
 int main(int argc, char * argv[])
