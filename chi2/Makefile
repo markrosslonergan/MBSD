@@ -3,7 +3,7 @@ d1:	stats.cxx LR.h LR.c
 	g++ -g -std=c++0x -c bounds.c -o bounds.o -I. -I/mt/home/ballett/etc/include
 	g++ -g -std=c++0x -c -o stats.o  stats.cxx -I. -I/mt/home/ballett/etc/include
 	g++ -g -std=c++0x -o stats LR.o bounds.o stats.o -lgomp -lnlopt -lgsl -lgslcblas -L/usr/lib -L/mt/home/ballett/etc/lib
-
+#11 was 0x
 #mark:	stats.cxx LR.h LR.c
 #	g++ -g -std=c++11 -c LR.c -o LR.o -I. -I/mt/home/mark/etc/include
 #	g++ -g -std=c++11 -c -o stats.o  stats.cxx -I. -I/mt/home/mark/etc/include

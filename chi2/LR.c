@@ -13,6 +13,14 @@
 #include "LR.h"
 //#include "Minuit2/FCNBase.h"
 
+int mcPrintVar(std::vector<double > list){
+for(int i = 0; i< list.size(); i++) 
+{
+	std::cout<<list[i]<<"  ";
+}
+return 1;
+}
+
 
 double intpow( double base, int exponent )
 {
@@ -373,7 +381,7 @@ double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double
 	double prob = 0.0;
 	int qeWhichBin = 0;
 
-	for(i=0;i<NUMEVENTS;i++)
+	for(i=0;i<30000;i++)//NUMEVENTS
 	{
 		if(events[i][0] > 1e-4)
 		{			
@@ -584,25 +592,5 @@ double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vect
         (*eVGram) = ddata.egram;
 
 return 0;
-}
-
-
-unsigned long int random_seed()
-{
-
- unsigned int seed;
- struct timeval tv;
- FILE *devrandom;
-
- if ((devrandom = fopen("/dev/random","r")) == NULL) {
-   gettimeofday(&tv,0);
-   seed = tv.tv_sec + tv.tv_usec;
- } else {
-   fread(&seed,sizeof(seed),1,devrandom);
-   fclose(devrandom);
- }
-
- return(seed);
-
 }
 

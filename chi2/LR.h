@@ -8,7 +8,7 @@
 #include <string>
 
 #define NUMEVENTS 40000
-#define NUM_EVENT_OBS 10 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
+#define NUM_EVENT_OBS 7 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
 
 #define EBINS 19
 #define COSBINS 10
@@ -17,7 +17,7 @@
 #define MCHI 80 
 
 typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; int which_var;} CL_input;
-typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf;} BF_RESULT;
+typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf; double E_bf_Up; double E_bf_Ud; double E_bf_Chi; double A_bf_Up; double A_bf_Ud; double A_bf_Chi; double QE_bf_Up; double QE_bf_Ud; double QE_bf_Chi;} BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
 
@@ -30,7 +30,6 @@ double BintoCentalQE(int b);
 int which_BINS(int which);
 
 double QEfromEandCos(double Evis,double costh);
-unsigned long int random_seed();
 
 double decayProb(CL_input input, double chiU, double Es);
 double histogrammer(CL_input in, double chiU, double cutEff, const double events[][NUM_EVENT_OBS], double eGram[], double cosGram[], double qeGram[]);
@@ -40,6 +39,8 @@ double histogrammer_indiv2(CL_input in, double Up, double Ud, double chi, double
 int printEGram(double eGram[]);
 int printCosGram(double cosGram[]);
 int printQeGram(double qeGram[]);
+
+int mcPrintVar(std::vector< double > list);
 
 typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);

@@ -22,41 +22,26 @@ double Gvee(double U, double ms){
 	return U*U*ms*ms*ms*ms*ms*GF*GF/(96*PI*PI*PI);
 }
 
-double GammaNeeded2DecayBefore(double mn, double en, double L, double L0){
-
-	double U = boundPS191u(mn);
+double GammaNeeded2DecayBefore(double mn, double en, double L, double L0, double assumedU){
 
 	double BR=0.126469;
 
-	double Gtot = Gvee(U,mn);
+	double Gtot = Gvee(assumedU,mn);
 	double pn = sqrt(en*en-mn*mn);
 	double B = exp(-Gtot*mn*M2G(L)/pn)*(1-exp(-mn*M2G(L0)*Gtot/pn))*BR;
 	double A = L0/L;
 	return -pn/(mn*M2G(L))*gsl_sf_lambert_Wm1(-B/A);
 }
 
-double GammaNeeded2DecayBeforeOrder1(double mn, double en, double L, double L0){
-
-	double U = boundNOMADt(mn);
-
-	double BR=0.126469;
-
-	double Gtot= Gvee(U,mn);
-	double pn = sqrt(en*en-mn*mn);
-	double B = exp(-Gtot*mn*M2G(L)/pn)*(1-exp(-mn*M2G(L0)*Gtot/pn))*BR;
-	double A = L0/L;
-	
-	return -pn/(mn*M2G(L))*gsl_sf_lambert_Wm1(-B/A);
-}
 
 bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp ){
 
 	bool ans = false;
 	
 	if( 	
-		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,2, 128, 12)/Gvee(1,ms)*pow(mzp/91.0,4))
+		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,1.0, 128, 12, boundPS191u(ms))/Gvee(1,ms)*pow(mzp/91.0,4))
 		 && 
-		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,18, 825, 7)/Gvee(1,ms)*pow(mzp/91.0,4)) 
+		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,24.3, 825, 7, boundNOMADt(ms))/Gvee(1,ms)*pow(mzp/91.0,4)) 
 		 && 	
 		(chi <= sqrt(boundBABARzp(mzp)))
 	){
@@ -71,9 +56,9 @@ bool bound_is_legit_order1(double up, double chi, double ms, double mzp ){
 	bool ans = false;
 	
 	if( 	
-		(up*1.0*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBeforeOrder1(ms,2, 128, 12)/Gvee(1,ms)*pow(mzp/91.0,4))
+		(up*1.0*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBefore(ms,1.0, 128, 12, boundPS191u(ms))/Gvee(1,ms)*pow(mzp/91.0,4))
 		 && 
-		((pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBeforeOrder1(ms,18, 825, 7)/Gvee(1,ms)*pow(mzp/91.0,4)) 
+		(up*up*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+1.0)*chi*chi >= GammaNeeded2DecayBefore(ms,24.3, 825, 7,boundNOMADt(ms))/Gvee(1,ms)*pow(mzp/91.0,4)) 
 		 && 	
 		(chi <= sqrt(boundBABARzp(mzp)))
 	){
