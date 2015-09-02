@@ -50,7 +50,7 @@ double getTotalNumEvents(CL_input input)
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "/scratch/ross/git/MBSD/MC/HIST_\0";
+	char filename[500] = "../MC/HIST_\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Total Filename: %s\n",filename);

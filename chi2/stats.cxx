@@ -35,7 +35,7 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
+	char filename[500] = "../decay/data/\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
@@ -1709,6 +1709,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	std::vector<double > mcMax (tORt,0.0);
 		mcMax[0]= log(boundBASEu(temp_mS))/log(10.0);
 		mcMax[1]= log(boundBASEzp(temp_mZprime))/log(10.0);
+		//mcMax[2]= log(boundBASEu(temp_mS))/log(10.0);
 	std::vector<double > mcVarLast = mcMax;
 	for(int i=0; i< mcNumVar; i++) 
 	{
@@ -2163,7 +2164,7 @@ switch(which_var)
 		output->E_bf_Up = pow(10,mcBestVar[0]);
 		output->E_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->E_bf_Up = 1.0;
+			output->E_bf_Ud = 1.0;
 		} else {
 			output->E_bf_Ud = pow(10,mcBestVar[2]);
 		}
@@ -2173,7 +2174,7 @@ switch(which_var)
 		output->A_bf_Up = pow(10,mcBestVar[0]);
 		output->A_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->A_bf_Up = 1.0;
+			output->A_bf_Ud = 1.0;
 		} else {
 			output->A_bf_Ud = pow(10,mcBestVar[2]);
 		}
@@ -2183,7 +2184,7 @@ switch(which_var)
 		output->QE_bf_Up = pow(10,mcBestVar[0]);
 		output->QE_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->QE_bf_Up = 1.0;
+			output->QE_bf_Ud = 1.0;
 		} else {
 			output->QE_bf_Ud = pow(10,mcBestVar[2]);
 		}
@@ -2262,14 +2263,14 @@ int main(int argc, char * argv[])
         		modeFlag = 4;
 			break;
     		case 'B':
-			if(!strcmp(optarg,"E")){ modeFlag = 5; }
-			else if(!strcmp(optarg,"A")){ modeFlag = 6; }
-			else if(!strcmp(optarg,"Q")){ modeFlag = 9; }
+			if(!strcmp(optarg,"E")){ modeFlag = 5; 	     in.which_var = ENERGY_FLAG; }
+			else if(!strcmp(optarg,"A")){ modeFlag = 6;  in.which_var = ANGULAR_FLAG;  }
+			else if(!strcmp(optarg,"Q")){ modeFlag = 9;  in.which_var= QE_FLAG; }
 			else { printf("Very bad thing!\nAborting...\n\nYou're probably not using the -B flag correctly.\n\n"); exit(1); }
 			break;
 		case 'I':
 			modeFlag=10;
-			if(!strcmp(optarg,"E")){ in.which_var = ENERGY_FLAG; }
+			if(!strcmp(optarg,"E")){      in.which_var = ENERGY_FLAG; }
 			else if(!strcmp(optarg,"A")){ in.which_var = ANGULAR_FLAG; }
 			else if(!strcmp(optarg,"Q")){ in.which_var= QE_FLAG; }
 			else { printf("Very bad thing!\nAborting...\n\nYou're probably not using the -I flag correctly.\n\n"); exit(1); }
@@ -2354,21 +2355,21 @@ int main(int argc, char * argv[])
 					Ud = bestfit->E_bf_Ud;
 					Chi = bestfit->E_bf_Chi;
 					modeFlag = 1; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,eGram,0,finalScale);
+					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,eGram,ENERGY_FLAG,finalScale);
 					break;
 				case 6:
 					Up = bestfit->A_bf_Up;
 					Ud = bestfit->A_bf_Ud;
 					Chi = bestfit->A_bf_Chi;
 					modeFlag=2; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,cosGram,1,finalScale);
+					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,cosGram,ANGULAR_FLAG,finalScale);
 					break;
 				case 9:
 					Up = bestfit->QE_bf_Up;
 					Ud = bestfit->QE_bf_Ud;
 					Chi = bestfit->QE_bf_Chi;
 					modeFlag=8; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,qeGram,2,finalScale);
+					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,qeGram,QE_FLAG,finalScale);
 					break;
 
 				default:							
