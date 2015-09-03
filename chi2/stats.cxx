@@ -35,8 +35,9 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "../decay/data/\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
+	//char filename[500] = "../decay/data/\0";
+	char filename[500] = "/scratch/ross/git/MBSD/decay/data/\0";
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -1626,28 +1627,25 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	double sum =0.0;
 	
 	int BINS = which_BINS(which_var);
-	double spec_obs[BINS];
-	double spec_bkg[BINS];
+	std::vector<double > spec_obs (BINS,0);
+	std::vector<double > spec_bkg (BINS,0);
 
 	switch (which_var)
 	{	
-	case 0:
-		spec_obs[0] = 204.0;spec_obs[1] = 280.0;spec_obs[2] = 214.0;spec_obs[3] = 99.0;spec_obs[4] = 83.0;spec_obs[5] = 59.0;spec_obs[6] = 51.0;spec_obs[7] = 33.0;spec_obs[8] = 37.0;spec_obs[9] = 23.0; spec_obs[10] = 19.0;spec_obs[11] = 21.0;spec_obs[12] = 12.0; spec_obs[13] = 16.0; spec_obs[14] = 4.0;spec_obs[15] = 9.0; spec_obs[16] = 4.0; spec_obs[17] = 7.0; spec_obs[18] = 3.0;
-		spec_bkg[0] = 151.5;	spec_bkg[1] = 218.8;	spec_bkg[2] = 155.6;spec_bkg[3] = 108.7;spec_bkg[4] = 72.5;spec_bkg[5] = 57.6;spec_bkg[6] = 45;spec_bkg[7] = 38.5;spec_bkg[8] = 31.4;spec_bkg[9] = 22.2;spec_bkg[10] = 20.4;spec_bkg[11] = 17.2;		spec_bkg[12] = 14.1;	spec_bkg[13] = 10.2;	spec_bkg[14] = 9.1;	spec_bkg[15] = 8.2;	spec_bkg[16] = 5.6;	spec_bkg[17] = 5.7;	spec_bkg[18] = 2.9;
-		break;
-	case 1: 
-		spec_obs[0] = 22; 	spec_obs[1] = 34; 	spec_obs[2] = 43; 	spec_obs[3] = 41; 	spec_obs[4] = 60; 	spec_obs[5] = 87; 	spec_obs[6] = 90; 	spec_obs[7] = 139; 	spec_obs[8] = 237; 	spec_obs[9] = 429;  	
-	spec_bkg[0] = 19.9; 	spec_bkg[1] = 23.1; 	spec_bkg[2] = 28.8; 	spec_bkg[3] = 32.1; 	spec_bkg[4] = 46.4; 	spec_bkg[5] = 63.1; 	spec_bkg[6] = 86.1; 	spec_bkg[7] = 121; 	spec_bkg[8] = 196.8; 	spec_bkg[9] = 390;
-		break;
-
-	case 2:
-	      	spec_obs[0] =  232; spec_obs[1] = 156 ;spec_obs[2] = 156 ;spec_obs[3] = 79 ;spec_obs[4] = 81 ;spec_obs[5] = 70 ;spec_obs[6] = 63 ;spec_obs[7] = 65 ;spec_obs[8] = 62 ;spec_obs[9] = 34 ;spec_obs[10] = 70;    
-	     spec_bkg[0] = 181.1 ;spec_bkg[1] = 108.4;spec_bkg[2] = 120.4;spec_bkg[3] = 64.2;spec_bkg[4] = 90.3; spec_bkg[5] = 67.7;spec_bkg[6] = 70.4;spec_bkg[7] = 57.5;spec_bkg[8] = 52.3; spec_bkg[9] = 39;spec_bkg[10] = 70.2;
-		break;
-	default:
-		std::cout<<"ERROR: which_var has to be 0-2"<<std::endl;
-
-
+		case 0:	// Energy Spectrum
+			spec_obs = {204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3};
+			spec_bkg = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9};
+			break;
+		case 1: //Angular Spectrum
+			spec_obs = {22,34,43,41,60,87,90,139,237,429};
+			spec_bkg = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390};
+			break;
+		case 2: //Quasi_Elastic Reco Spectrum
+			spec_obs ={232,156,156,79,81,70,63,65,62,34,70};
+	    	        spec_bkg = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+			break;
+		default:
+			std::cout<<"ERROR: which_var has to be 0-2 corresponding to E,A and QE"<<std::endl;
 	}
 
 	double Gram[BINS];
@@ -1655,6 +1653,10 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	{
 		Gram[i]=0.0;
 	}
+
+	std::vector<double > best_spectrum;
+	double best_zeta_b = 0.0;
+
 	double tmp_tot=0.0;
 	double logchiU,chiU,contEfficiency;
 	double best_contEfficiency=1e50;
@@ -1683,7 +1685,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
         std::vector<double > Zeros(EBINS, 0.0);
         std::vector<double > BF_bkg_only_zeta_b = {0};
         double BF_bkg_only_chi = 10000;
-        nuisMarginalize(& BF_bkg_only_zeta_b,& BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        nuisMarginalize(& BF_bkg_only_zeta_b, & BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
         std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
 
 //######################################################################### BEGIN MCMC 
@@ -1724,7 +1726,8 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 		sum=0.0;
 
 		// Initialise T = 0.0 end run.
-		if((mcCount == mcNumRun-1 || mcRawCount == mcRawMax-endEnd) && best < 0.99*BF_bkg_only_chi){ 	
+		if((mcCount == mcNumRun-1 || mcRawCount == mcRawMax-endEnd) && best < 0.99*BF_bkg_only_chi){
+
 			endStep = true;
 			std::fill (mcS.begin(),mcS.end(),0.025);
 			mcVarLast=mcBestVar;
@@ -1735,7 +1738,8 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 
 		// Once a non-forced fake (schwartz boundary) point is found, reduce stepsize approtiately
 		if(mcSumLast < 0.99*BF_bkg_only_chi && !endStep)
-		{ 		
+		{ 	
+
 			std::fill (mcS.begin(),mcS.end(),0.125);
 		}
 
@@ -1750,7 +1754,6 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 			sum = 1e6;
 			stuckCount++;
 		} else {
-			
 			in.mS = temp_mS;
 			in.mZprime = temp_mZprime;
 
@@ -1769,25 +1772,33 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 				tChi=pow(10,mcTempVar[1]);
 				tUd=pow(10,mcTempVar[2]);
 			}
-
+		        
+					
+			bf_zeta_b = {0};	//re initalise for safetly
+			bf_chi=10000;
 	
 			contEfficiency = histogrammer_indiv2(in,tUp,tUd,tChi,cutEfficiency,events,Gram,which_var,finalScale);
-		       	VGram.assign(Gram, Gram+BINS);
+		        VGram.assign(Gram, Gram+BINS);
 		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
 		        zeta_b = bf_zeta_b[0];
+			/*for(int i =0;i<BINS;i++){
+				std::cout<<zeta_b<<" "<<VGram[i]<<" "<<Gram[i]<<std::endl;
+			}*/
 
 			N_events = 0;
 			N_sig_events = 0;
 			N_bg_events = 0;
 
 			int bin = 0;
-			double temp_sig,temp_bg;
+			double temp_sig=0.0;
+			double temp_bg =0.0 ;
 
+			
+			if(sum!=0.0){ std::cout<<"# ERROR: Sum is not Zero: "<<sum<<std::endl;}
 
-	
 				for(bin=0;bin<BINS;bin++)
 				{
-					temp_sig = sigma_s*Gram[bin];
+					temp_sig = Gram[bin];
 					temp_bg = (1.0+zeta_b)*spec_bkg[bin];
 					lambda = temp_sig + temp_bg;
 					N = spec_obs[bin]; 
@@ -1795,19 +1806,24 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 					N_events += lambda;
 					N_sig_events += temp_sig;
 					N_bg_events += temp_bg;
-					sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+					sum= sum + 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 				}
-			
-				sum += pow((zeta_b/sigma_zeta),2.0); 
+				sum = sum + pow((zeta_b/sigma_zeta),2.0); 
+				
+				if(abs(sum-bf_chi)>1e-3){
+					std::cout<<"# Error: sum != bf_chi in mcmc. Sum : "<<sum<<" bf_chi: "<<bf_chi<<std::endl;
+				}
 		}
 
 		if(sum < best)			
 		{ 
-			best=sum; 
+			best = sum; 
 			best_contEfficiency = contEfficiency; 
 			best_N_events = N_events;
 			best_N_sig_events = N_sig_events;
 			best_N_bg_events = N_bg_events;
+			best_spectrum = VGram;
+			best_zeta_b = zeta_b;
 			for(int i=0; i < mcNumVar;i++){ 
 				mcBestVar[i] = mcTempVar[i];
 			}
@@ -1828,7 +1844,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 			{ 
 				mcProb = 1;
 			}
-
+			
 
 //std::cout<<mcCount<<" T: "<<mcTemp<<" Step "<<mcS[0]<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var ";
 //mcPrintVar(mcTempVar);
@@ -1839,7 +1855,8 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 				mcVarLast=mcTempVar;
 				mcCount++;
 				sum = 0.0;
-			} //otherwise choose a new point
+			}
+			  //otherwise choose a new point
 
 		} else {  // If in Endstep
 
@@ -1847,13 +1864,13 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 //mcPrintVar(mcTempVar);
 //std::cout<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" END"<<std::endl;
 
-			mcTemp= 1/(0.1*double((mcRawCount - endStart)+1)+1)+0.05;
+			  mcTemp= 1/(0.1*double((mcRawCount - endStart)+1)+1)+0.05;
 			  if(sum < mcSumLast){ 
 				mcSumLast=sum;
 				mcVarLast=mcTempVar;
 				mcCount++;
 				sum = 0.0;
-			}
+			} 
 
 		} 	
 
@@ -1862,12 +1879,13 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 		for(int i=0; i < mcNumVar;i++){ //Initialise MCMC variables
 			 mcGenRan= gsl_rng_uniform(r);
 			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
-			 while(mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i]){
-
+			 while(mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i]){	
 						 mcGenRan = gsl_rng_uniform(r);
 						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
-			 } 		
+			 } 	
+
 		}
+
 		sum=0.0;
 
 
@@ -1878,7 +1896,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 
        	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<" ";
 	mcPrintVar(mcBestVar);
-	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency<<std::endl;
+	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency<<" "<<best_zeta_b<<std::endl;
 
 
 
@@ -1887,33 +1905,38 @@ gsl_rng_free(r);
 BF_RESULT* output = new BF_RESULT();
 //BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
 
+output->stats_bf=best_zeta_b;
+
 switch(which_var) 
 {
 	case 0:
+		output->E_spectrum = best_spectrum;
 		output->E_bf_Up = pow(10,mcBestVar[0]);
 		output->E_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->E_bf_Up = 1.0;
+			output->E_bf_Ud = 1.0;
 		} else {
 			output->E_bf_Ud = pow(10,mcBestVar[2]);
 		}
 
 		break;
 	case 1:
+		output->A_spectrum = best_spectrum;
 		output->A_bf_Up = pow(10,mcBestVar[0]);
 		output->A_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->A_bf_Up = 1.0;
+			output->A_bf_Ud = 1.0;
 		} else {
 			output->A_bf_Ud = pow(10,mcBestVar[2]);
 		}
 
 		break;
-	case 2:
+	case 2:	
+		output->QE_spectrum= best_spectrum;
 		output->QE_bf_Up = pow(10,mcBestVar[0]);
 		output->QE_bf_Chi = pow(10,mcBestVar[1]);
 		if(mcNumVar == 2) {
-			output->QE_bf_Up = 1.0;
+			output->QE_bf_Ud = 1.0;
 		} else {
 			output->QE_bf_Ud = pow(10,mcBestVar[2]);
 		}
@@ -2239,13 +2262,10 @@ int main(int argc, char * argv[])
         		in.eCut = 0.14;
         		in.thCut = strtof(optarg,NULL);
         		break;
-        
+       
       		case 'R':
         		in.eFloor = 0.1; //100 MeV
         		in.eRatio = 0.1; // Lowest is less than 10% of Highest
-        		break;
-      		case 'X':
-        		chiU = strtof(optarg,NULL);
         		break;
 		case 'E':
 			modeFlag = 1;
@@ -2261,6 +2281,11 @@ int main(int argc, char * argv[])
 			break;
     		case 'O':
         		modeFlag = 4;
+			break;
+      		case 'X':
+			Up =  strtof(optarg,NULL);
+			Ud =  strtof(optarg,NULL);
+			Chi =  strtof(optarg,NULL);
 			break;
     		case 'B':
 			if(!strcmp(optarg,"E")){ modeFlag = 5; 	     in.which_var = ENERGY_FLAG; }
@@ -2293,7 +2318,7 @@ int main(int argc, char * argv[])
 			printf("Allowed arguments:\n"
 				"\t-m\tSets mS mass.\n"
 				"\t-Z\tSets mZprime mass.\n"
-				"\t-X\tSets chiU\n"
+				"\t-X\tSets Up, Ud, Chi\n"
 				"\t-c\tSets cuts (0.14,5.0).\n"
 				"\t-P\tPrints input parameters.\n"
 				"\t-E(-A)(-Q)\tPrints the (E)nergy, (A)ngular spectrum or (Q)e spectrum.\n"
@@ -2322,7 +2347,7 @@ int main(int argc, char * argv[])
 		}
 		else 
 		{
-		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n# chiU = %.5g\n",in.mS, in.mZprime, in.eCut, in.thCut,in.eFloor,in.eRatio,chiU);
+		printf("# mS = %.5lf\n# mZprime = %.5lf\n# eCut = %.5lf\n# thCut = %.5lf\n# eFloor = %.5lf\n# eRatio = %.5lf\n# chiU = %.5g\n# Up = %.5g\n# Ud = %.5g\n# Chi = %.5g\n",in.mS, in.mZprime, in.eCut, in.thCut,in.eFloor,in.eRatio,chiU,Up,Ud,Chi);
 		}
 	}
 	//Set up an empty event array and populate it from the decay files.
@@ -2335,19 +2360,24 @@ int main(int argc, char * argv[])
 	if(modeFlag)
 	{
 
+
 		//std::cout<<"# Start Mode Flag"<<std::endl;
 		int i;
 		double eGram[EBINS];
 		double cosGram[COSBINS];
 		double qeGram[QEBINS];
 		double contEfficiency;
+		double finalScale = getTotalNumEvents(in);
+	
+		std::vector<double> bfspectrum;
+		double bfzeta=0;
 
 		//A slightly hacky way to print the best-fit spectra.
 		if(modeFlag == 5 || modeFlag == 6 || modeFlag == 9)// 5: print best fitting energy spec. 6: print best fitting angular spec. 8: print best fitting QE spectrum
 		{
 			BF_RESULT * bestfit = new BF_RESULT();	
 			bestfit = mcmc_stats_fit_spectra_indiv(in,cutEfficiency,events);
-			double finalScale = getTotalNumEvents(in);
+
 
 			switch(modeFlag){
 				case 5:
@@ -2355,55 +2385,65 @@ int main(int argc, char * argv[])
 					Ud = bestfit->E_bf_Ud;
 					Chi = bestfit->E_bf_Chi;
 					modeFlag = 1; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,eGram,ENERGY_FLAG,finalScale);
+					bfspectrum = bestfit->E_spectrum;
+					bfzeta=bestfit->stats_bf;
+					//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,eGram,ENERGY_FLAG,finalScale);
+					//std::cout<<"# zeta_bkg "<<bfzeta<< " chi: "<<pow((bfzeta/0.03),2)<<std::endl;
+
+				
 					break;
 				case 6:
 					Up = bestfit->A_bf_Up;
 					Ud = bestfit->A_bf_Ud;
 					Chi = bestfit->A_bf_Chi;
 					modeFlag=2; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,cosGram,ANGULAR_FLAG,finalScale);
+					bfspectrum = bestfit->A_spectrum;
+					//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,cosGram,ANGULAR_FLAG,finalScale);
 					break;
 				case 9:
 					Up = bestfit->QE_bf_Up;
 					Ud = bestfit->QE_bf_Ud;
 					Chi = bestfit->QE_bf_Chi;
 					modeFlag=8; statsFlag=0;
-					contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,qeGram,QE_FLAG,finalScale);
+					bfspectrum = bestfit->QE_spectrum;
+					//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,qeGram,QE_FLAG,finalScale);
 					break;
 
 				default:							
 					std::cout<<"Error: Its definitely impossible to be in this switch case."<<std::endl;
 			}
 
+			
+
 
 		}
-		else
-		{
-			contEfficiency = histogrammer(in,chiU,cutEfficiency,events,eGram,cosGram,qeGram);
-		}
-
+		
 
 		// The main modeFlag fractionating column.
 		if(modeFlag == 1)
 		{
+			//std::cout<<"# zeta_bkg "<<bfzeta<< " chi: "<<pow((bfzeta/0.03),2)<<std::endl;
+			//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,eGram,0,finalScale);
 			for(i=0;i<EBINS;i++)
 			{
-				std::cout<<BintoCentralE(i)<<" "<<eGram[i]<<std::endl;
+				std::cout<<BintoCentralE(i)<<" "<<bfspectrum[i]<<std::endl;
+				//std::cout<<BintoCentralE(i)<<" "<<eGram[i]<<std::endl;
 			}
 		}
 		else if(modeFlag == 2)
 		{ 
+			//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,cosGram,1,finalScale);
 			for(i=0;i<COSBINS;i++)
 			{
-				std::cout<<BintoCentralCos(i)<<" "<<cosGram[i]<<std::endl;
+				std::cout<<BintoCentralCos(i)<<" "<<bfspectrum[i]<<std::endl;
 			}
 		}
 		else if(modeFlag == 8)
 		{ 
+			//contEfficiency   = histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,qeGram,2,finalScale);
 			for(i=0;i<QEBINS;i++)
 			{
-				std::cout<<BintoCentalQE(i)<<" "<<qeGram[i]<<std::endl;
+				std::cout<<BintoCentalQE(i)<<" "<<bfspectrum[i]<<std::endl;
 			}
 		}
 		else if(modeFlag == 3)

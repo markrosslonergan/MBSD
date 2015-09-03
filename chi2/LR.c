@@ -50,7 +50,8 @@ double getTotalNumEvents(CL_input input)
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "../MC/HIST_\0";
+	//char filename[500] = "../MC/HIST_\0";
+	char filename[500] = "/scratch/ross/git/MBSD/MC/HIST_\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Total Filename: %s\n",filename);
@@ -453,29 +454,27 @@ double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *
 
 
         double zeta_b = x[0];
-                                 //{204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3}
-        std::vector<double > eO = {204.0, 280.0,214.0, 99.0, 83.0, 59.0, 51.0, 33.0, 37.0, 23.0, 19.0, 21.0, 12.0, 16.0, 4.0, 9.0, 4.0, 7.0, 3.0};
+
+        std::vector<double > eO = {204, 280,214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3};
         std::vector<double > eB = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9};
 
         double temp_sig=0,temp_bg=0,lambda=0,N=0, E_N_events=0,E_N_sig_events=0,E_N_bg_events= 0,E_sum = 0;
-        double sigma_s = 1.0;
+
         int bin = 0;
         for(bin=0;bin<EBINS;bin++)
                         {
-                                temp_sig = sigma_s*eGram[bin];
+                                temp_sig = eGram[bin];
                                 temp_bg = (1.0+zeta_b)*eB[bin];
                                 lambda = temp_sig + temp_bg;
-                                N = eO[bin]; //MB has seen O[] events.
-                                
+                                N = eO[bin]; 
                                 E_N_events += lambda;
                                 E_N_sig_events += temp_sig;
                                 E_N_bg_events += temp_bg;
-                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+
                                 E_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
-                //              std::cout<<E_sum<<std::endl;
+
                         }
         E_sum+= pow((zeta_b/sigma_zeta),2.0);
-        //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
 
 return E_sum;
 }
@@ -515,7 +514,7 @@ double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *
                                 postGram[bin]=lambda;
                 //              std::cout<<E_sum<<std::endl;
                         }
-        A_sum+= RunSigma*pow((zeta_b/sigma_zeta),2.0);
+        A_sum+= pow((zeta_b/sigma_zeta),2.0);
         //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
         //d->egram = postGram;
 
@@ -530,7 +529,7 @@ double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void 
 
 
         double zeta_b = x[0];
-                                 //{204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3}
+
         std::vector<double > qeO = {232,156,156,79,81,70,63,65,62,34,70};
         std::vector<double > qeB = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
 

@@ -22,6 +22,8 @@ double boundPS191u(double ms);
 double boundNOMADt(double ms);
 double boundBABARzp( double mzp);
 
+int printVec(std::vector<double > vec);
+
 bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp );
 bool bound_is_legit_order1(double up, double chi, double ms, double mzp );
 

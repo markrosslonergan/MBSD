@@ -17,7 +17,7 @@
 #define MCHI 80 
 
 typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; int which_var;} CL_input;
-typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf; double E_bf_Up; double E_bf_Ud; double E_bf_Chi; double A_bf_Up; double A_bf_Ud; double A_bf_Chi; double QE_bf_Up; double QE_bf_Ud; double QE_bf_Chi;} BF_RESULT;
+typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf; double E_bf_Up; double E_bf_Ud; double E_bf_Chi; double A_bf_Up; double A_bf_Ud; double A_bf_Chi; double QE_bf_Up; double QE_bf_Ud; double QE_bf_Chi; std::vector<double > E_spectrum;  std::vector<double > A_spectrum;  std::vector<double >QE_spectrum; double stats_bf;} BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
 

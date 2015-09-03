@@ -12,6 +12,14 @@
 
 #include "bounds.h"
 
+int printVec(std::vector<double > vec)
+{
+for(int i = 0; i < vec.size(); i++){
+	std::cout<<vec[i]<<std::endl;
+}
+return 0;
+}
+
 double M2G (double m) {
 return (100*1e5*1e9*m)/1.973;
 }
