@@ -1,13 +1,16 @@
 #!/bin/bash
 
 #echo > logfile.dat
-for ms in `ls ../MC/MC_* | awk 'FS="_" {print $2}' | uniq | sort -n | paste -sd ' ' -`
+for ms in `ls /scratch/ross/latestrunSeptabove2/MC_* | awk 'FS="_" {print $2}' | uniq | sort -n | paste -sd ' ' -`
 do
 
-if [ `echo "$ms-0.038 > 0" | bc -l` -eq 1 ]
-then
 
-	for mZ in `ls ../MC/MC_* | awk 'FS="_" {print $3}' | tail -n44 | sed 's/.dat//g' | sort -rn`
+
+#if [ `echo "$ms-0.038 > 0" | bc -l` -eq 1 ]
+#then
+if true
+then
+	for mZ in `ls /scratch/ross/latestrunSeptabove2/MC_* | uniq| awk 'FS="_" {print $3}' | sed 's/.dat//g' | uniq | sort -n| uniq `
 	do
 
 	START=`date +%s`

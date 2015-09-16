@@ -8,7 +8,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
-#define NUMEVENTS 200000
+#define NUMEVENTS 40000
 
 struct PDF_CHOICE { double Enu; double cosThnu; double Phinu; };
 typedef struct OBSERVABLES { double E_sum; double Th_sum; double AngSep; double E_sterile; double Th_sterile; double E_high; double Th_high; double E_low; double Th_low; double FS_AngSep; } OBSERVABLES;
@@ -105,8 +105,8 @@ double getEvents(double mS, double mZprime, double events[][2])
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "../MC/MC_\0";
-	sprintf(s,"%.4lf_%.4lf.dat", mS, mZprime);
+	char filename[500] = "/scratch/ross/latestrunSeptabove2/MC_\0";
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");

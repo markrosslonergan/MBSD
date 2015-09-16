@@ -36,8 +36,9 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int m = 0;
 	char s[100];
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
-	//char filename[500] = "../decay/data/\0";
-	char filename[500] = "/scratch/ross/git/MBSD/decay/data/\0";
+	char filename[500] = "../decay/data/\0";
+//	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
+
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);
 	ptr_file =fopen(filename,"r");
@@ -1718,9 +1719,9 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 		mcVarLast[i]=mcMin[0]+gsl_rng_uniform(r)*(mcMax[0]-mcMin[0]);
 	}
 	std::vector<double > mcTempVar = mcVarLast;
+	bool boolnone = true;
 
-
-	while(( mcCount < mcNumRun || (endStep && ( (mcRawCount - endStart) < endEnd)) ) && mcRawCount < mcRawMax ) 
+	while(( mcCount < mcNumRun || (endStep && ( (mcRawCount - endStart) < endEnd)) ) && mcRawCount < mcRawMax && boolnone ) 
 	{
        		mcRawCount++;
 		sum=0.0;
@@ -1878,10 +1879,16 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 
 		for(int i=0; i < mcNumVar;i++){ //Initialise MCMC variables
 			 mcGenRan= gsl_rng_uniform(r);
+			 int test = 0;
 			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
-			 while(mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i]){	
+			 while((mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i] ) && boolnone ){	
 						 mcGenRan = gsl_rng_uniform(r);
+						 test++; 
+						 if(test > 20000){
+							boolnone = false;
+						 }
 						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
+					//	 std::cout<<"Thats the one: No points at all in whole range!: "<<test<<std::endl;
 			 } 	
 
 		}
