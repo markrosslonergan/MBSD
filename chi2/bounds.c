@@ -42,6 +42,27 @@ double GammaNeeded2DecayBefore(double mn, double en, double L, double L0, double
 }
 
 
+bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, double chi){
+	bool ans = true;
+	
+	if (ms < 0.139/2.0){
+		if( pow(91.0/mzp,4)*chi*chi*(3e-8)*pow(ms/0.139,2)*sqrt(1-4*pow(ms/0.139,2)) <=2.7e-7){
+			ans=false;
+		}
+	} else if (ms < 0.139)
+	{
+		if( pow(91.0/mzp,4)*chi*chi*(up*up+ud*ud)*3e-8*pow(ms/0.139,2)*sqrt(1-pow(ms/0.139,2)) <=2.7e-7){
+			ans=false;
+		}
+
+	}
+	
+
+	return ans;
+}
+
+
+
 bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp ){
 
 	bool ans = false;
@@ -52,6 +73,8 @@ bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp 
 		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,24.3, 825, 7, boundNOMADt(ms))/Gvee(1,ms)*pow(mzp/91.0,4)) 
 		 && 	
 		(chi <= sqrt(boundBABARzp(mzp)))
+		 && 
+		boundPiZeroInvisibleDecay(ms,mzp,up,ud,chi)
 	){
 	ans=true;
 	}

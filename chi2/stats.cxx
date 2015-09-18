@@ -1884,7 +1884,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 			 while((mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i] ) && boolnone ){	
 						 mcGenRan = gsl_rng_uniform(r);
 						 test++; 
-						 if(test > 20000){
+						 if(test > 50000){
 							boolnone = false;
 						 }
 						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);

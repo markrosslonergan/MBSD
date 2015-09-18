@@ -22,6 +22,8 @@ double boundPS191u(double ms);
 double boundNOMADt(double ms);
 double boundBABARzp( double mzp);
 
+bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, double chi);
+
 int printVec(std::vector<double > vec);
 
 bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp );
