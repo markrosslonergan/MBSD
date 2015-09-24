@@ -12,6 +12,7 @@
 // All bounds on Chi valid 0.1 to 1
 
 double GammaNeeded2DecayBefore(double mn, double en, double L, double L0, double assumedU);
+double Gsterile2vvv(double Up, double Ud, double chi, double ms, double mzp);
 
 double Gvee(double U, double ms);
 double M2G (double m) ;
@@ -27,6 +28,7 @@ bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, doub
 int printVec(std::vector<double > vec);
 
 bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp );
+bool bound_is_legit_tau_bkg(double up, double ud, double chi, double ms, double mzp );
 bool bound_is_legit_order1(double up, double chi, double ms, double mzp );
 
 #endif

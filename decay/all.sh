@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -e "/scratch/ross/latestrunSeptabove2/MC_"$1"_"$2".dat" ]; then
+if [ -e "/scratch/ross/dataMC24sept/MC_"$1"_"$2".dat" ]; then
 	echo File exists.
-	./decayer $1 $2 > "data/above2/"$1"_"$2".dat"
+	./decayer $1 $2 > "data/"$1"_"$2".dat"
 fi
 
 

@@ -27,12 +27,25 @@ return (100*1e5*1e9*m)/1.973;
 double Gvee(double U, double ms){
 	double PI=3.14159;
 	double GF=0.00001166;
+
 	return U*U*ms*ms*ms*ms*ms*GF*GF/(96*PI*PI*PI);
+}
+
+double Gsterile2vvv(double Up, double Ud, double chi, double ms, double mzp){
+	double PI=3.14159;
+	double GF=0.00001166;
+	double e = sqrt(4*PI*1.0/137.0);
+	double tw = 0.491769;
+	double mz = 91.0;
+	// Actually this is a total decay rate 
+	return pow(ms,5)*(pow(Ud,2)+pow(Up,2))*(0.0000128704*pow(chi,2)/pow(mzp,4)+8.13152e-14);
+
+//	return (Up*Up+Ud*Ud)*ms*ms*ms*ms*ms*pow(e*e/(mz*mz*sin(2*tw)*sin(2*tw))+pow(Up+Ud,2)/(mzp*mzp)+0.5*e*chi*cos(tw)/(mzp*mzp),2)/(2*96*PI*PI*PI);
 }
 
 double GammaNeeded2DecayBefore(double mn, double en, double L, double L0, double assumedU){
 
-	double BR=0.126469;
+	double BR=1;0.126469;
 
 	double Gtot = Gvee(assumedU,mn);
 	double pn = sqrt(en*en-mn*mn);
@@ -44,17 +57,14 @@ double GammaNeeded2DecayBefore(double mn, double en, double L, double L0, double
 
 bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, double chi){
 	bool ans = true;
-	
-	if (ms < 0.139/2.0){
-		if( pow(91.0/mzp,4)*chi*chi*(3e-8)*pow(ms/0.139,2)*sqrt(1-4*pow(ms/0.139,2)) <=2.7e-7){
-			ans=false;
-		}
-	} else if (ms < 0.139)
-	{
-		if( pow(91.0/mzp,4)*chi*chi*(up*up+ud*ud)*3e-8*pow(ms/0.139,2)*sqrt(1-pow(ms/0.139,2)) <=2.7e-7){
-			ans=false;
-		}
+ 	double mpi = 0.139;
+	double brfactor=1.0-0.1265;	
 
+	if (ms < mpi/2.0 &&  pow(91.0/mzp,4)*chi*chi*3e-8*pow(ms/mpi,2)*sqrt(1-4*pow(ms/mpi,2))*brfactor > 2.7e-7){
+		ans=false;
+	} 
+	if (ms < 0.139 && pow(91.0/mzp,4)*chi*chi*(up*up+ud*ud)*(3*pow(10,-8))*pow(ms/mpi,2)*pow(1-pow(ms/mpi,2),2)*brfactor > 2.7e-7){
+		ans=false;
 	}
 	
 
@@ -68,19 +78,39 @@ bool bound_is_legit_tau(double up, double ud, double chi, double ms, double mzp 
 	bool ans = false;
 	
 	if( 	
-		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,1.0, 128, 12, boundPS191u(ms))/Gvee(1,ms)*pow(mzp/91.0,4))
+		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || Gsterile2vvv(up,ud,chi,ms,mzp) >= GammaNeeded2DecayBefore(ms,1.0, 128, 12, boundPS191u(ms)))
 		 && 
-		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,24.3, 825, 7, boundNOMADt(ms))/Gvee(1,ms)*pow(mzp/91.0,4)) 
+		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || Gsterile2vvv(up,ud,chi,ms,mzp)  >= GammaNeeded2DecayBefore(ms,24.3, 825, 7, boundNOMADt(ms))) 
 		 && 	
 		(chi <= sqrt(boundBABARzp(mzp)))
-		 && 
-		boundPiZeroInvisibleDecay(ms,mzp,up,ud,chi)
+		 //&& 
+		//boundPiZeroInvisibleDecay(ms,mzp,up,ud,chi)
 	){
 	ans=true;
 	}
 
 	return ans;
 }
+
+bool bound_is_legit_tau_bkup(double up, double ud, double chi, double ms, double mzp ){
+
+	bool ans = false;
+	
+	if( 	
+		(up*ud*chi <= pow(mzp/91.0,2)*pow(boundPS191u(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,1.0, 128, 12, boundPS191u(ms))/Gvee(1,ms)*pow(mzp/91.0,4))
+		 && 
+		(ud*ud*chi <= pow(mzp/91.0,2)*pow(boundNOMADt(ms),2) || (pow(up,2)+pow(ud,2))*chi*chi >= GammaNeeded2DecayBefore(ms,24.3, 825, 7, boundNOMADt(ms))/Gvee(1,ms)*pow(mzp/91.0,4)) 
+		 && 	
+		(chi <= sqrt(boundBABARzp(mzp)))
+		// && 
+		//boundPiZeroInvisibleDecay(ms,mzp,up,ud,chi)
+	){
+	ans=true;
+	}
+
+	return ans;
+}
+
 
 bool bound_is_legit_order1(double up, double chi, double ms, double mzp ){
 
