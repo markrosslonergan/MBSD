@@ -1709,9 +1709,10 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	std::vector<double > mcS (tORt,4); 	int mcNumVar = mcS.size();
 	std::vector<double > mcMin (tORt,-5);
 	std::vector<double > mcBestVar (tORt,99);
-	std::vector<double > mcMax (tORt,0.0);
-		mcMax[0]= log(boundBASEu(temp_mS))/log(10.0);
-		mcMax[1]= log(boundBASEzp(temp_mZprime))/log(10.0);
+	double mm = -1.5;
+	std::vector<double > mcMax (tORt,mm);
+		mcMax[0]= std::min(mm,log(boundBASEu(temp_mS))/log(10.0));
+		mcMax[1]= std::min(mm,log(boundBASEzp(temp_mZprime))/log(10.0));
 		//mcMax[2]= log(boundBASEu(temp_mS))/log(10.0);
 	std::vector<double > mcVarLast = mcMax;
 	for(int i=0; i< mcNumVar; i++) 

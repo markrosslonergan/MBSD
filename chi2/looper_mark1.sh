@@ -20,7 +20,7 @@ mkdir data/24sept
 #done
 
 
-FILENAME=data/24sept/pizero_parallelE2.dat
+FILENAME=data/24sept/pizero_parallel_upper_1.50_E.dat
 
 for ms in `ls ../decay/data/ | awk -F'_' ' {print $1}' | uniq | sort -n `
 do
