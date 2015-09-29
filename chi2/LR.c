@@ -8,10 +8,42 @@
 #include <iomanip>
 #include <sys/time.h>
 #include <gsl/gsl_sf_lambert.h>
+#include <gsl/gsl_sf_gamma.h>
+//#include <gsl/gsl_sf_gamma_inc.h>
 //#include <gsl/pow.h>
 
 #include "LR.h"
 //#include "Minuit2/FCNBase.h"
+double GoF1(std::vector<double > Spectrum, std::vector<double > Obs, std::vector<double > bkg, double bkg_zeta){
+	double ans = 0;
+	double N=0;
+	int length = Obs.size();
+	for(int i = 0; i<length; i++)
+	{	
+		N=Spectrum[i]+(bkg_zeta+1.0)*bkg[i];
+		ans += 2*(N-Obs[i]+Obs[i]*log(Obs[i]/N));
+	}
+	return ans;
+}
+double GoF2(std::vector<double > Spectrum, std::vector<double > Obs, std::vector<double > bkg, double bkg_zeta){
+	double ans = 0;
+	double N=0;
+	int length = Obs.size();
+	for(int i = 0; i<length; i++)
+	{	
+		N=Spectrum[i]+(1.0+bkg_zeta)*bkg[i];
+		ans+=pow(N-Obs[i],2)/Obs[i];
+	}
+	return ans;
+}
+
+double pval(double chi2, double ndof){
+
+	return 1.0-(gsl_sf_gamma_inc(ndof/2.0, 0.0)-gsl_sf_gamma_inc(ndof/2.0,chi2/2.0))/gsl_sf_gamma(ndof/2);
+
+}
+
+
 
 int mcPrintVar(std::vector<double > list){
 for(int i = 0; i< list.size(); i++) 

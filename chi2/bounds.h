@@ -16,12 +16,16 @@ double Gsterile2vvv(double Up, double Ud, double chi, double ms, double mzp);
 
 double Gvee(double U, double ms);
 double M2G (double m) ;
+double G2M (double GeV);
+double invG2S(double GeV);
 
 double boundBASEu(double ms);
 double boundBASEzp(double mzp);
 double boundPS191u(double ms);
 double boundNOMADt(double ms);
 double boundBABARzp( double mzp);
+
+double boundTRIDENT(double mzp);
 
 bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, double chi);
 

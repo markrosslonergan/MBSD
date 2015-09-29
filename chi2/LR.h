@@ -49,6 +49,10 @@ double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void 
 double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
 
 
+double GoF1(std::vector<double > best_spectrum,std::vector<double > spec_obs, std::vector<double >bkg, double bkzeta);
+double GoF2(std::vector<double > best_spectrum,std::vector<double > spec_obs, std::vector<double >bkg, double bkzeta);
+double pval(double chi2, double ndof);
+
 double intpow( double base, int exponent );
 
 
