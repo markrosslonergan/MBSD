@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstdio>
+#include <numeric>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -19,6 +20,12 @@
 #define ANGULAR_FLAG 1
 #define QE_FLAG 2
 
+#define POSNU 0
+#define POSNUBAR 1
+#define NEGNU 2
+#define NEGNUBAR 3
+
+
 const char *NAMES[3] = { "Energy", "Angular", "Quasi-elastic" };
 
 double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
@@ -36,7 +43,8 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 	int m = 0;
 	char s[100];
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
-	char filename[500] = "../decay/data/\0";
+	//char filename[500] = "../decay/data/\0";
+	char filename[500] = "../decay/data12oct/anti/\0";
 //	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
 
 	strcat(filename,s);
@@ -91,6 +99,148 @@ double getEvents(CL_input input, double events[][NUM_EVENT_OBS])
 return 0;
 }
 
+double getEvents_NU(CL_input input, double events[][NUM_EVENT_OBS])
+{
+	double mS = input.mS;
+	double mZprime = input.mZprime;
+
+	FILE *ptr_file;
+    	
+	char buf[3000];
+
+	char * pch;
+
+	int n = 1;
+	int m = 0;
+	char s[100];
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
+	//char filename[500] = "../decay/data/\0";
+		char  filename[500] = "../decay/data12oct/\0";
+	
+//	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
+
+	strcat(filename,s);
+//	printf("Filename: %s\n",filename);
+	ptr_file =fopen(filename,"r");
+
+    	if (!ptr_file)
+       	{			
+		printf("ERROR LOADING MC EVENTS 1\n");
+		exit(1);
+	}
+
+    	while (fgets(buf,3000, ptr_file)!=NULL)
+	{
+		pch = strtok(buf," \t");
+		n=1;
+ 		while (pch != NULL)
+		{
+			if(n==1){	//printf("%.7g, ",strtof(pch,NULL));
+					events[m][0] = strtof(pch,NULL);	//E_sum 
+				}
+			if(n==2){	//printf("%.7g, ",strtof(pch,NULL));
+					events[m][1] = strtof(pch,NULL);	//Th_sum
+				}
+			if(n==3){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][2] = strtof(pch,NULL);	//AngSep
+				}
+			if(n==4){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][3] = strtof(pch,NULL);	//E_sterile
+				}
+			if(n==6){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][4] = strtof(pch,NULL);	//E_high
+				}
+			if(n==7){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][6] = strtof(pch,NULL);	//E_low
+				}
+			if(n==8){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][5] = strtof(pch,NULL);	//E_low
+				}
+
+			pch = strtok(NULL," \t");
+			n++;	
+		}
+		m++;
+	}
+	fclose(ptr_file);
+
+//	printf("%s\n",flux_temp);
+
+//printf("Total lines: %d\n", m);
+
+return 0;
+}
+double getEvents_NUBAR(CL_input input, double events[][NUM_EVENT_OBS])
+{
+	double mS = input.mS;
+	double mZprime = input.mZprime;
+
+	FILE *ptr_file;
+    	
+	char buf[3000];
+
+	char * pch;
+
+	int n = 1;
+	int m = 0;
+	char s[100];
+	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
+	//char filename[500] = "../decay/data/\0";
+		char  filename[500] = "../decay/data12oct/anti/\0";
+	
+//	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
+
+	strcat(filename,s);
+//	printf("Filename: %s\n",filename);
+	ptr_file =fopen(filename,"r");
+
+    	if (!ptr_file)
+       	{			
+		printf("ERROR LOADING MC EVENTS 1\n");
+		exit(1);
+	}
+
+    	while (fgets(buf,3000, ptr_file)!=NULL)
+	{
+		pch = strtok(buf," \t");
+		n=1;
+ 		while (pch != NULL)
+		{
+			if(n==1){	//printf("%.7g, ",strtof(pch,NULL));
+					events[m][0] = strtof(pch,NULL);	//E_sum 
+				}
+			if(n==2){	//printf("%.7g, ",strtof(pch,NULL));
+					events[m][1] = strtof(pch,NULL);	//Th_sum
+				}
+			if(n==3){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][2] = strtof(pch,NULL);	//AngSep
+				}
+			if(n==4){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][3] = strtof(pch,NULL);	//E_sterile
+				}
+			if(n==6){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][4] = strtof(pch,NULL);	//E_high
+				}
+			if(n==7){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][6] = strtof(pch,NULL);	//E_low
+				}
+			if(n==8){	//printf("%.7g\n",strtof(pch,NULL));
+					events[m][5] = strtof(pch,NULL);	//E_low
+				}
+
+			pch = strtok(NULL," \t");
+			n++;	
+		}
+		m++;
+	}
+	fclose(ptr_file);
+
+//	printf("%s\n",flux_temp);
+
+//printf("Total lines: %d\n", m);
+
+return 0;
+}
 int wipeEventArray(double events[][NUM_EVENT_OBS])
 {
 	int i;
@@ -148,6 +298,7 @@ return ((double)good)/((double)NUMEVENTS);
 BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {	
 	int which_var = in.which_var;
+	int pos_selector = in.pos_selector;
 
 	const gsl_rng_type * T;
 	gsl_rng * r;
@@ -170,24 +321,44 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	int BINS = which_BINS(which_var);
 	std::vector<double > spec_obs (BINS,0);
 	std::vector<double > spec_bkg (BINS,0);
+	double OBSEVENTS = 0;
 
 	switch (which_var)
 	{	
 		case 0:	// Energy Spectrum
-			spec_obs = {204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3};
-			spec_bkg = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9};
+			if (pos_selector == POSNU || pos_selector == POSNUBAR){
+				spec_obs = {204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3};
+				spec_bkg = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9};
+			} else if (pos_selector == NEGNU || pos_selector == NEGNUBAR){
+				spec_obs ={93,130,85,68,45,40,14,18,11,14,12,12,12,2,4,7,3,2,4};
+				spec_bkg ={ 74.2,107.5,73.5,49.3,36.7,27.8,25.1,20.4,18.6,13.9,13.5,9.8,8.9,7.8,5.3,5,3.9,3.8,1.9};
+			} 
 			break;
 		case 1: //Angular Spectrum
-			spec_obs = {22,34,43,41,60,87,90,139,237,429};
-			spec_bkg = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390};
+			if (pos_selector == POSNU || pos_selector == POSNUBAR){
+				spec_obs = {22,34,43,41,60,87,90,139,237,429};
+				spec_bkg = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390};
+			} else if (pos_selector == NEGNU || pos_selector == NEGNUBAR){
+				spec_obs = {10,13,16,20,24,36,41,70,94,263};
+				spec_bkg = {9.2,11.2,13.5,16,18.7,24.2,36,52.1,94.9,237.1};
+			} 
+	
 			break;
 		case 2: //Quasi_Elastic Reco Spectrum
-			spec_obs ={232,156,156,79,81,70,63,65,62,34,70};
-	    	        spec_bkg = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+			if (pos_selector == POSNU || pos_selector == POSNUBAR){
+				spec_obs ={232,156,156,79,81,70,63,65,62,34,70};
+		    	        spec_bkg = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+			} else if (pos_selector == NEGNU || pos_selector == NEGNUBAR){// BROKE not actual CCQE
+				spec_obs ={232,156,156,79,81,70,63,65,62,34,70};
+		    	        spec_bkg = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+			} 
+	
 			break;
 		default:
 			std::cout<<"ERROR: which_var has to be 0-2 corresponding to E,A and QE"<<std::endl;
 	}
+
+	OBSEVENTS = std::accumulate(spec_obs.begin(), spec_obs.end(), 0); 
 
 	double Gram[BINS];
 	for(int i=0;i<BINS;i++)
@@ -223,10 +394,10 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 
 // ########################   Calculate LogLiki (Dchi^2) for Background only with SYtematics ################
 
-        std::vector<double > Zeros(EBINS, 0.0);
+        std::vector<double > Zeros(BINS, 0.0);
         std::vector<double > BF_bkg_only_zeta_b = {0};
         double BF_bkg_only_chi = 10000;
-        nuisMarginalize(& BF_bkg_only_zeta_b, & BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        nuisMarginalize(& BF_bkg_only_zeta_b, & BF_bkg_only_chi, &Zeros, which_var, sigma_zeta,pos_selector);
         std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
 
 //######################################################################### BEGIN MCMC 
@@ -321,7 +492,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	
 			contEfficiency = histogrammer_indiv2(in,tUp,tUd,tChi,cutEfficiency,events,Gram,which_var,finalScale);
 		        VGram.assign(Gram, Gram+BINS);
-		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta,pos_selector);
 		        zeta_b = bf_zeta_b[0];
 			/*for(int i =0;i<BINS;i++){
 				std::cout<<zeta_b<<" "<<VGram[i]<<" "<<Gram[i]<<std::endl;
@@ -442,12 +613,382 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 	double valGoF1=GoF1(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
 	double valGoF2=GoF2(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
 
-	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<"; Variable:  "<<NAMES[which_var]<<";  "<<best_N_events<<" = ("<<best_N_sig_events<<" + "<<best_N_bg_events<<")"<<std::endl;
+	std::cout<<"#From Mark: "<<getTotalNumEvents(in)<<"; Variable:  "<<NAMES[which_var]<<";  "<<best_N_events<<" = ("<<best_N_sig_events<<" + "<<best_N_bg_events<<")"<<std::endl;
 	std::cout<<"# Decay Related Checks: Gtotal (GeV): "<<decaywidth<<" 1/Gtotal (m): "<<G2M(pow(decaywidth,-1))<<" 1/Gtotal (s): "<<invG2S(pow(decaywidth,-1))<<std::endl;
-       	std::cout<<"# GoF tests. GoF1: "<<valGoF1<<" GoF1/nDoF: "<<valGoF1/spec_obs.size()<<" pVal1: "<<pval(valGoF1,spec_obs.size())<<" GoF2: "<<valGoF2<<" GoF2/nDoF: "<<valGoF2/spec_obs.size()<<" pVal2: "<<pval(valGoF2,spec_obs.size())<<std::endl;
+       	std::cout<<"# GoF tests. GoF1: "<<valGoF1<<" GoF1/nDoF: "<<valGoF1/spec_obs.size()<<" pVal1: "<<pval(valGoF1,spec_obs.size())<<" GoF2: "<<pow(best_N_events - OBSEVENTS ,2)/OBSEVENTS<<std::endl;
 	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<" ";
 	mcPrintVar(mcBestVar);
 	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency<<" "<<best_zeta_b<<std::endl;
+gsl_rng_free(r);
+
+BF_RESULT* output = new BF_RESULT();
+//BF_RESULT * output = (BF_RESULT *)malloc(sizeof(BF_RESULT));
+
+output->stats_bf=best_zeta_b;
+
+switch(which_var) 
+{
+	case 0:
+		output->E_spectrum = best_spectrum;
+		output->E_bf_Up = pow(10,mcBestVar[0]);
+		output->E_bf_Chi = pow(10,mcBestVar[1]);
+		if(mcNumVar == 2) {
+			output->E_bf_Ud = 1.0;
+		} else {
+			output->E_bf_Ud = pow(10,mcBestVar[2]);
+		}
+
+		break;
+	case 1:
+		output->A_spectrum = best_spectrum;
+		output->A_bf_Up = pow(10,mcBestVar[0]);
+		output->A_bf_Chi = pow(10,mcBestVar[1]);
+		if(mcNumVar == 2) {
+			output->A_bf_Ud = 1.0;
+		} else {
+			output->A_bf_Ud = pow(10,mcBestVar[2]);
+		}
+
+		break;
+	case 2:	
+		output->QE_spectrum= best_spectrum;
+		output->QE_bf_Up = pow(10,mcBestVar[0]);
+		output->QE_bf_Chi = pow(10,mcBestVar[1]);
+		if(mcNumVar == 2) {
+			output->QE_bf_Ud = 1.0;
+		} else {
+			output->QE_bf_Ud = pow(10,mcBestVar[2]);
+		}
+
+		break;
+	default:							
+		std::cout<<"ERROR: which_var in mcmc must be 0(E), 1(A) or 2(QE)"<<std::endl;
+}
+
+
+
+return output;
+
+}
+
+BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEfficiency_NUBAR, double events_NU[NUMEVENTS][NUM_EVENT_OBS], double events_NUBAR[NUMEVENTS][NUM_EVENT_OBS])
+{	
+	int which_var = in.which_var;
+	int pos_selector = in.pos_selector;
+
+	const gsl_rng_type * T;
+	gsl_rng * r;
+	gsl_rng_env_setup();
+	T = gsl_rng_default;
+	r = gsl_rng_alloc (T);
+	gsl_rng_set(r,std::time(0));
+
+	//chi_histogrammer_indiv(in,0.01,0.02,cutEfficiency,events,which_var);
+
+
+	double zeta_b =0.0;
+	double sigma_s = 1.0;
+	double sigma_zeta = in.Sigma_Zeta;
+	
+	double N=0.0;
+	double lambda=0.0;
+	double sum =0.0;
+	
+	int BINS = 2*which_BINS(which_var);
+	std::vector<double > spec_obs (BINS,0);
+	std::vector<double > spec_bkg (BINS,0);
+	double OBSEVENTS = 0;
+
+
+	switch (which_var)
+	{	
+		case 0:	// Energy Spectrum
+				spec_obs = {204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3,93,130,85,68,45,40,14,18,11,14,12,12,12,2,4,7,3,2,4};
+				spec_bkg = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9, 74.2,107.5,73.5,49.3,36.7,27.8,25.1,20.4,18.6,13.9,13.5,9.8,8.9,7.8,5.3,5,3.9,3.8,1.9};
+			break;
+		case 1: //Angular Spectrum
+				spec_obs = {22,34,43,41,60,87,90,139,237,429,10,13,16,20,24,36,41,70,94,263};
+				spec_bkg = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390,9.2,11.2,13.5,16,18.7,24.2,36,52.1,94.9,237.1};
+			break;
+		case 2: //Quasi_Elastic Reco Spectrum
+				spec_obs ={232,156,156,79,81,70,63,65,62,34,70,232,156,156,79,81,70,63,65,62,34,70};
+		    	        spec_bkg = {181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.,181.1,108.4,120.4,64.2,90.3,67.7,70.4,57.5,52.3,39,70.2};
+			break;
+		default:
+			std::cout<<"ERROR: which_var has to be 0-2 corresponding to E,A and QE"<<std::endl;
+	}
+
+	OBSEVENTS = std::accumulate(spec_obs.begin(), spec_obs.end(), 0); 
+
+	double Gram[BINS];
+	for(int i=0;i<BINS;i++)
+	{
+		Gram[i]=0.0;
+	}
+
+	std::vector<double > best_spectrum = spec_obs;
+	double best_zeta_b = 0.0;
+
+	double tmp_tot=0.0;
+	double logchiU,chiU,contEfficiency;
+	double best_contEfficiency=1e50;
+	double best_N_events=1e-50;
+	double best_chiU = 1e50;
+	double best = 1e5;
+	double temp_mS = in.mS;
+	double temp_mZprime = in.mZprime;
+
+	double N_events=0;
+	double N_sig_events=0;
+	double N_bg_events=0;
+	double best_N_sig_events = 0;
+	double best_N_bg_events = 0;
+
+//#########################################################################
+
+        std::vector<double > VGram(Gram, Gram + BINS);
+        std::vector<double > bf_zeta_b;  
+        double bf_chi ;
+
+	if(VGram.size() != BINS && BINS != spec_obs.size()){std::cout<<"ERROR, dimesnons mismatch! "<<BINS<<" "<<VGram.size()<<" "<<spec_obs.size()<<std::endl;}
+
+
+// ########################   Calculate LogLiki (Dchi^2) for Background only with SYtematics ################
+
+        std::vector<double > Zeros(BINS, 0.0);
+        std::vector<double > BF_bkg_only_zeta_b = {0};
+        double BF_bkg_only_chi = 10000;
+	
+	
+        nuisMarginalize_dual(& BF_bkg_only_zeta_b, & BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
+
+//######################################################################### BEGIN MCMC 
+
+	int tORt = 3 ;
+	int mcCount=0; 	int mcRawCount = 0; int stuckCount=0;
+	int mcNumRun = 1000; 
+	int endStart = 0;
+	int endEnd = 2000; 	
+	int mcMaxStuck = -1;
+	int mcRawMax = 20000; 
+	double mcSumLast=1e10;
+	double mcTemp=0.4;
+	double mcProb=0.0;
+	double mcGenRan = gsl_rng_uniform(r);
+	double finalScale_NU = getTotalNumEvents_NU(in);
+	double finalScale_NUBAR = getTotalNumEvents_NUBAR(in);
+	bool endStep = false;
+	bool validBound = true;
+
+	std::vector<double > mcS (tORt,4); 	int mcNumVar = mcS.size();
+	std::vector<double > mcMin (tORt,-5);
+	std::vector<double > mcBestVar (tORt,99);
+	double mm = -0.0;
+	std::vector<double > mcMax (tORt,mm);
+		mcMax[0]= std::min(mm,log(boundBASEu(temp_mS))/log(10.0));
+		mcMax[1]= std::min(0.0,log(boundBASEzp(temp_mZprime))/log(10.0));
+		//mcMax[2]= log(boundBASEu(temp_mS))/log(10.0);
+	std::vector<double > mcVarLast = mcMax;
+	for(int i=0; i< mcNumVar; i++) 
+	{
+		mcVarLast[i]=mcMin[0]+gsl_rng_uniform(r)*(mcMax[0]-mcMin[0]);
+	}
+	std::vector<double > mcTempVar = mcVarLast;
+	bool boolnone = true;
+
+	while(( mcCount < mcNumRun || (endStep && ( (mcRawCount - endStart) < endEnd)) ) && mcRawCount < mcRawMax && boolnone ) 
+	{
+       		mcRawCount++;
+		sum=0.0;
+
+		// Initialise T = 0.0 end run.
+		if((mcCount == mcNumRun-1 || mcRawCount == mcRawMax-endEnd) && best < 0.99*BF_bkg_only_chi){
+
+			endStep = true;
+			std::fill (mcS.begin(),mcS.end(),0.025);
+			mcVarLast=mcBestVar;
+			mcSumLast=best;
+			endStart = mcRawCount;
+			
+		} 	
+
+		// Once a non-forced fake (schwartz boundary) point is found, reduce stepsize approtiately
+		if(mcSumLast < 0.99*BF_bkg_only_chi && !endStep)
+		{ 	
+
+			std::fill (mcS.begin(),mcS.end(),0.125);
+		}
+
+
+		if( mcNumVar == 2){
+			validBound = bound_is_legit_order1(pow(10,mcTempVar[0]),pow(10,mcTempVar[1]),temp_mS,temp_mZprime);
+		} else  {
+		        validBound = bound_is_legit_tau(pow(10,mcTempVar[0]),pow(10,mcTempVar[2]),pow(10,mcTempVar[1]),temp_mS,temp_mZprime); 
+		}
+
+		if( !validBound || mcTempVar[0]>mcMax[0] || mcTempVar[1]>mcMax[1]  ) {  
+			sum = 1e6;
+			stuckCount++;
+		} else {
+			in.mS = temp_mS;
+			in.mZprime = temp_mZprime;
+
+
+			double tUd=0;	double tUp=0;	double tChi=0;
+
+
+
+			if( mcNumVar == 2){
+				tUp=pow(10,mcTempVar[0]);
+				tChi=pow(10,mcTempVar[1]);
+				tUd=1.0;
+		
+			} else {
+				tUp=pow(10,mcTempVar[0]);
+				tChi=pow(10,mcTempVar[1]);
+				tUd=pow(10,mcTempVar[2]);
+			}
+		        
+					
+			bf_zeta_b = {0};	//re initalise for safetly
+			bf_chi=10000;
+	
+			contEfficiency = histogrammer_indiv2_dual(in,tUp,tUd,tChi,cutEfficiency_NU,cutEfficiency_NUBAR,events_NU,events_NUBAR,Gram,which_var,finalScale_NU,finalScale_NUBAR);
+		        
+			VGram.assign(Gram, Gram+BINS);
+		        nuisMarginalize_dual(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+		        zeta_b = bf_zeta_b[0];
+/*			for(int i =0;i<BINS;i++){
+				std::cout<<zeta_b<<" "<<VGram[i]<<" "<<Gram[i]<<std::endl;
+			}
+*/
+
+			N_events = 0;
+			N_sig_events = 0;
+			N_bg_events = 0;
+
+			int bin = 0;
+			double temp_sig=0.0;
+			double temp_bg =0.0 ;
+
+			
+			if(sum!=0.0){ std::cout<<"# ERROR: Sum is not Zero: "<<sum<<std::endl;}
+
+				for(bin=0;bin<BINS;bin++)
+				{
+					temp_sig = Gram[bin];
+					temp_bg = (1.0+zeta_b)*spec_bkg[bin];
+					lambda = temp_sig + temp_bg;
+					N = spec_obs[bin]; 
+				
+					N_events += lambda;
+					N_sig_events += temp_sig;
+					N_bg_events += temp_bg;
+					sum= sum + 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+				}
+				sum = sum + pow((zeta_b/sigma_zeta),2.0); 
+				
+				if(abs(sum-bf_chi)>1e-3){
+					std::cout<<"# Error: sum != bf_chi in mcmc. Sum : "<<sum<<" bf_chi: "<<bf_chi<<std::endl;
+				}
+		}
+
+		if(sum < best)			
+		{ 
+			best = sum; 
+			best_contEfficiency = contEfficiency; 
+			best_N_events = N_events;
+			best_N_sig_events = N_sig_events;
+			best_N_bg_events = N_bg_events;
+			best_spectrum = VGram;
+			best_zeta_b = zeta_b;
+			for(int i=0; i < mcNumVar;i++){ 
+				mcBestVar[i] = mcTempVar[i];
+			}
+		}
+
+
+		
+		if(!endStep){
+
+			mcGenRan = gsl_rng_uniform(r);
+			//Probability of accepting a new point in the chain.
+			mcProb = exp(-(sum-mcSumLast)/mcTemp); 
+
+			if(-(sum-mcSumLast)/mcTemp < -10.0)
+			{ 
+				mcProb = 0;
+			} else if( sum < mcSumLast)
+			{ 
+				mcProb = 1;
+			}
+			
+
+//std::cout<<mcCount<<" T: "<<mcTemp<<" Step "<<mcS[0]<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var ";
+//mcPrintVar(mcTempVar);
+//std::cout<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" NOR"<<std::endl;
+		
+			if(mcGenRan < mcProb) { 
+				mcSumLast=sum;
+				mcVarLast=mcTempVar;
+				mcCount++;
+				sum = 0.0;
+			}
+			  //otherwise choose a new point
+
+		} else {  // If in Endstep
+
+//std::cout<<mcCount<<" T: "<<mcTemp<<" Step "<<mcS[0]<<" random "<<mcGenRan<<" prob: "<<mcProb<<" exp "<<-(sum-mcSumLast)/mcTemp<<"  sum "<<sum<<" sumLast "<<mcSumLast<<" var ";
+//mcPrintVar(mcTempVar);
+//std::cout<<" BEST: "<<best<<" raw#: "<<mcRawCount<<" END"<<std::endl;
+
+			  mcTemp= 1/(0.1*double((mcRawCount - endStart)+1)+1)+0.05;
+			  if(sum < mcSumLast){ 
+				mcSumLast=sum;
+				mcVarLast=mcTempVar;
+				mcCount++;
+				sum = 0.0;
+			} 
+
+		} 	
+
+
+
+		for(int i=0; i < mcNumVar;i++){ //Initialise MCMC variables
+			 mcGenRan= gsl_rng_uniform(r);
+			 int test = 0;
+			 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
+			 while((mcTempVar[i] > mcMax[i] || mcTempVar[i] < mcMin[i] ) && boolnone ){	
+						 mcGenRan = gsl_rng_uniform(r);
+						 test++; 
+						 if(test > 50000){
+							boolnone = false;
+						 }
+						 mcTempVar[i] = mcVarLast[i]+mcS[i]*(mcGenRan-0.5)*(mcMin[i]-mcMax[i]);
+					//	 std::cout<<"Thats the one: No points at all in whole range!: "<<test<<std::endl;
+			 } 	
+
+		}
+
+		sum=0.0;
+
+
+}//End MCMC loop
+	double decaywidth=Gsterile2vvv(mcBestVar[0],mcBestVar[2],mcBestVar[1],temp_mS,temp_mZprime);
+	double valGoF1=GoF1(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
+	//double valGoF2=GoF2(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
+
+	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<"; Variable:  "<<NAMES[which_var]<<";  "<<best_N_events<<" = ( "<<best_N_sig_events<<" + "<<best_N_bg_events<<" )"<<std::endl;
+	std::cout<<"# Decay Related Checks: Gtotal (GeV): "<<decaywidth<<" 1/Gtotal (m): "<<G2M(pow(decaywidth,-1))<<" 1/Gtotal (s): "<<invG2S(pow(decaywidth,-1))<<std::endl;
+       	std::cout<<"# GoF tests. GoF1: "<<valGoF1<<" GoF1/nDoF: "<<valGoF1/spec_obs.size()<<" pVal1: "<<pval(valGoF1,spec_obs.size())<<" GoF2: "<<pow(best_N_events - OBSEVENTS ,2)/OBSEVENTS<<std::endl;
+	std::cout<<"# bf spectrum: ";
+	mcPrintVar(best_spectrum);
+	std::cout<<std::endl;
+
+	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<" ";
+	mcPrintVar(mcBestVar);
+	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency_NU<<" "<<best_zeta_b<<std::endl;
 
 
 gsl_rng_free(r);
@@ -502,6 +1043,7 @@ return output;
 
 }
 
+
 BF_RESULT * plot_surface(CL_input in, double cutEfficiency, double events[NUMEVENTS][NUM_EVENT_OBS])
 {	
 	int which_var = in.which_var;
@@ -519,7 +1061,7 @@ BF_RESULT * plot_surface(CL_input in, double cutEfficiency, double events[NUMEVE
 	double zeta_b =0.0;
 	double sigma_s = 1.0;
 	double sigma_zeta = in.Sigma_Zeta;
-	
+	int pos_selector=in.pos_selector;	
 	double N=0.0;
 	double lambda=0.0;
 	double sum =0.0;
@@ -583,7 +1125,7 @@ BF_RESULT * plot_surface(CL_input in, double cutEfficiency, double events[NUMEVE
         std::vector<double > Zeros(EBINS, 0.0);
         std::vector<double > BF_bkg_only_zeta_b = {0};
         double BF_bkg_only_chi = 10000;
-        nuisMarginalize(& BF_bkg_only_zeta_b,& BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        nuisMarginalize(& BF_bkg_only_zeta_b,& BF_bkg_only_chi, &Zeros, which_var, sigma_zeta,pos_selector);
         std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
 
 //######################################################################### BEGIN MCMC
@@ -667,7 +1209,7 @@ while(true){
 	
 			contEfficiency = histogrammer_indiv2(in,pow(10,tUp),pow(10,tUd),pow(10,tChi),cutEfficiency,events,Gram,which_var,finalScale);
 		       	VGram.assign(Gram, Gram+BINS);
-		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+		        nuisMarginalize(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta,pos_selector);
 		        zeta_b = bf_zeta_b[0];
 
 			N_events = 0;
@@ -775,15 +1317,21 @@ return output;
 
 double spectra_indiv(CL_input in, double Up, double Ud, double Chi)
 {	
-	double finalScale = getTotalNumEvents(in);
 	int which_var = in.which_var;
 	double sigma_zeta = in.Sigma_Zeta;
-	
-
+	double finalScale = 0;
+	int pos_selector = in.pos_selector;
 	static double events[NUMEVENTS][NUM_EVENT_OBS];
 	wipeEventArray(events); //wipe the array.
-	getEvents(in,events); // populates event array. 
 
+	if(pos_selector==POSNU || pos_selector == POSNUBAR){
+		getEvents_NU(in,events); // populates event array. 
+		finalScale = getTotalNumEvents_NU(in);
+	} else if (pos_selector == NEGNU || pos_selector ==NEGNUBAR){
+		getEvents_NUBAR(in,events);
+		finalScale = getTotalNumEvents_NUBAR(in);
+	}
+	
 	double cutEfficiency = applyObservableCuts(in,events); //applys cuts. (Post-cut events may have lots of blank slots).
 
 	int BINS = which_BINS(which_var);
@@ -802,12 +1350,12 @@ double spectra_indiv(CL_input in, double Up, double Ud, double Chi)
 	std::vector<double > Zeros(EBINS, 0.0);
         std::vector<double > bkg_only_zeta_b = {0};
         double bkg_only_chi = 10000;
-        nuisMarginalize(&bkg_only_zeta_b, &bkg_only_chi, &Zeros, which_var, sigma_zeta);
+        nuisMarginalize(&bkg_only_zeta_b, &bkg_only_chi, &Zeros, which_var, sigma_zeta,pos_selector);
 
 	histogrammer_indiv2(in,Up,Ud,Chi,cutEfficiency,events,Gram,which_var,finalScale);
 
         VGram.assign(Gram, Gram+BINS);
-        nuisMarginalize(&zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
+        nuisMarginalize(&zeta_b, &bf_chi, &VGram,which_var,sigma_zeta,pos_selector);
 	bool validBound = false;
         validBound = bound_is_legit_tau(Up,Ud,Chi,in.mS, in.mZprime);
 	if (!validBound || Up > boundBASEu(in.mS) || Chi > boundBASEzp(in.mZprime))
@@ -827,6 +1375,7 @@ int main(int argc, char * argv[])
 	//std::cout<<whatsmaxUXorder1(0.09,0.3)<<"  "<<whatsmaxUXorder1(0.03,0.6)<<"  "<<whatsmaxUXorder1(0.05,0.45)<<std::endl;		
 
 	static CL_input in;
+
 	in.eCut = 0.0;
 	in.thCut = 180.0;
 	in.eFloor = 0.0; // I believe 0.0 for Floor and Ratio mean that the cut is never passed.
@@ -845,7 +1394,7 @@ int main(int argc, char * argv[])
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "m:Z:X:c:S:B:I:TPFERKOAQ")) != -1)
+	while ((c = getopt (argc, argv, "m:Z:X:c:S:B:I:D:TPFERKOAQ")) != -1)
    	{ 
 	switch (c) 
       	{
@@ -861,7 +1410,7 @@ int main(int argc, char * argv[])
         		break;
        
       		case 'R':
-        		in.eFloor = 0.1; //100 MeV
+        		in.eFloor = 0.02; //100 MeV
         		in.eRatio = 0.1; // Lowest is less than 10% of Highest
         		break;
 		case 'E':
@@ -915,6 +1464,9 @@ int main(int argc, char * argv[])
 		case 'K':
 			modeFlag=11;
 			break;
+		case 'D':
+			in.pos_selector=strtof(optarg,NULL);
+			break;
       		case '?':
 			printf("Abandon hope all ye who enter this value: %c\n",optopt);
 			printf("Allowed arguments:\n"
@@ -931,7 +1483,8 @@ int main(int argc, char * argv[])
 				"\t-O\tPrints the cut efficiency.\n"
 				"\t-S\tToggles Systematics of bkg (Default off).\n"
 				"\t-K\tPLots the (K)ontainment efficiency. (Needs -X to define chiU.)\n"
-				"\t-T\tTesting ground, god knows what you will find.\n");
+				"\t-T\tTesting ground, god knows what you will find.\n"
+				"\t-D\t D? anti Deutrino Mode flag\n");
                   	return 1;
       		default:
 			printf("I don't know how you got here.\n");
@@ -957,7 +1510,20 @@ int main(int argc, char * argv[])
 	wipeEventArray(events); //wipe the array.
 	getEvents(in,events); // populates event array. 
 
+	static double events_NU[NUMEVENTS][NUM_EVENT_OBS];
+	wipeEventArray(events_NU);
+	getEvents_NU(in,events_NU);
+
+	static double events_NUBAR[NUMEVENTS][NUM_EVENT_OBS];
+	wipeEventArray(events_NUBAR);
+	getEvents_NUBAR(in,events_NUBAR);
+
+
 	double cutEfficiency = applyObservableCuts(in,events); //applys cuts. (Post-cut events may have lots of blank slots).
+
+
+	double cutEfficiency_NU = applyObservableCuts(in,events_NU); //applys cuts. (Post-cut events may have lots of blank slots).
+	double cutEfficiency_NUBAR = applyObservableCuts(in,events_NUBAR); //applys cuts. (Post-cut events may have lots of blank slots).
 
 	if(modeFlag)
 	{
@@ -1072,7 +1638,8 @@ int main(int argc, char * argv[])
 
 		} else if (modeFlag == 10) {
 			
-			mcmc_stats_fit_spectra_indiv(in,cutEfficiency,events);
+		//	mcmc_stats_fit_spectra_indiv(in,cutEfficiency,events);
+			mcmc_stats_dual(in,cutEfficiency_NU, cutEfficiency_NUBAR,events_NU,events_NUBAR);
 			//plot_surface(in,cutEfficiency,events);
 
 		} else if (modeFlag == 11) {

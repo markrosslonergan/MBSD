@@ -105,7 +105,7 @@ double getEvents(double mS, double mZprime, double events[][2])
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char filename[500] = "/scratch/ross/dataMC24sept/MC_\0";
+	char filename[500] = "/scratch/ross/dataMC12oct/anti/MC_\0";
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
 //	printf("Filename: %s\n",filename);

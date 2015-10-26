@@ -16,10 +16,13 @@
 
 #define MCHI 80 
 
-typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; int which_var;} CL_input;
+typedef struct CL_input { double mS; double mZprime; double eCut; double thCut; double eFloor; double eRatio;double SysOn; double Sigma_Zeta; int which_var; int pos_selector;} CL_input;
 typedef struct BF_RESULT { double E_bf; double A_bf; double QE_bf; double E_bf_Up; double E_bf_Ud; double E_bf_Chi; double A_bf_Up; double A_bf_Ud; double A_bf_Chi; double QE_bf_Up; double QE_bf_Ud; double QE_bf_Chi; std::vector<double > E_spectrum;  std::vector<double > A_spectrum;  std::vector<double >QE_spectrum; double stats_bf;} BF_RESULT;
 
 double getTotalNumEvents(CL_input in);
+
+double getTotalNumEvents_NU(CL_input in);
+double getTotalNumEvents_NUBAR(CL_input in);
 
 int EtoBin(double E);
 double BintoCentralE(int bin);
@@ -42,11 +45,11 @@ int printQeGram(double qeGram[]);
 
 int mcPrintVar(std::vector< double > list);
 
-typedef struct {std::vector<double >  egram; double Sigma_Zeta; } nuisStruct;
+typedef struct {std::vector<double >  egram; double Sigma_Zeta; int pos_selector;} nuisStruct;
 double nuisFuncE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncA(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
 double nuisFuncQE(const std::vector<double> &x, std::vector<double> &grad, void *my_data);
-double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
+double nuisMarginalize(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA,int pos_selector);
 
 
 double GoF1(std::vector<double > best_spectrum,std::vector<double > spec_obs, std::vector<double >bkg, double bkzeta);
@@ -55,6 +58,8 @@ double pval(double chi2, double ndof);
 
 double intpow( double base, int exponent );
 
+double nuisMarginalize_dual(std::vector<double > * bf_zeta_b, double * chi, std::vector<double > * eVGram,int whi, double SIGMAZETA);
+double histogrammer_indiv2_dual(CL_input in, double Up, double Ud, double chi, double cutEff_NU,double cutEff_NUBAR, const double events_NU[][NUM_EVENT_OBS], const double events_NUBAR[][NUM_EVENT_OBS], double Gram[], int which_var, double finalScale_NU, double finalScale_NUBAR);
 
 #endif
 
