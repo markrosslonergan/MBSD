@@ -99,7 +99,7 @@ double getTotalNumEvents(CL_input input)
 
     	if (!ptr_file)
        	{			
-		printf("ERROR LOADING MC EVENTS 2\n");
+		printf("ERROR LOADING MC EVENTS 2 (old shouldnt run)\n");
 		return 1;
 	}
     	while (fgets(buf,3000, ptr_file)!=NULL)
@@ -145,7 +145,7 @@ double getTotalNumEvents_NU(CL_input input)
 	int m = 0;
 	char s[100];
 
-	char filename[500]= "/scratch/ross/dataMC12oct/HIST_\0";
+	char filename[500]= "/scratch/ross/dataMC28oct/HIST_\0";
 
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	strcat(filename,s);
@@ -154,7 +154,7 @@ double getTotalNumEvents_NU(CL_input input)
 
     	if (!ptr_file)
        	{			
-		printf("ERROR LOADING MC EVENTS 2\n");
+		printf("ERROR LOADING MC EVENTS 2 getTotalNumEvents_NU LR.c\n");
 		return 1;
 	}
     	while (fgets(buf,3000, ptr_file)!=NULL)
@@ -187,7 +187,7 @@ double getTotalNumEvents_NUBAR(CL_input input)
 {
 	double mS = input.mS;
 	double mZprime = input.mZprime;
-	double FUDGE = 3;
+	double FUDGE = 0.75;
 	FILE *ptr_file;
     	
 	char buf[3000];
@@ -199,7 +199,7 @@ double getTotalNumEvents_NUBAR(CL_input input)
 	int n = 1;
 	int m = 0;
 	char s[100];
-	char  filename[500]="/scratch/ross/dataMC12oct/anti/HIST_\0";
+	char  filename[500]="/scratch/ross/dataMC28oct/anti/HIST_\0";
 	
 
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
@@ -209,7 +209,7 @@ double getTotalNumEvents_NUBAR(CL_input input)
 
     	if (!ptr_file)
        	{			
-		printf("ERROR LOADING MC EVENTS 2\n");
+		printf("ERROR LOADING MC EVENTS 2 getTotalNumEvents_NU LR.c\n");
 		return 1;
 	}
     	while (fgets(buf,3000, ptr_file)!=NULL)
@@ -326,7 +326,7 @@ double decayProb(CL_input input, double chiU, double Es)
 
 	double L = 1.5; // 1 metre.
 	double g1 = 0.2;
-	double e = sqrt(4*M_PI*1.0/137);
+	double e = sqrt(4*M_PI*1.0/137.0);
 	double tw = 0.523;
 
 	
@@ -910,7 +910,8 @@ double nuisFuncE_dual(const std::vector<double> &x, std::vector<double> &grad, v
         double sigma_zeta = d->Sigma_Zeta;
 
 
-        double zeta_b = x[0];
+ 
+        double zeta_b = x[0];        double zeta_b_NUBAR = x[1];
 	std::vector<double > eO = {204, 280, 214, 99, 83, 59, 51, 33, 37, 23, 19, 21, 12, 16, 4, 9, 4, 7, 3,93,130,85,68,45,40,14,18,11,14,12,12,12,2,4,7,3,2,4};
         std::vector<double > eB = {151.5, 218.8, 155.6, 108.7, 72.5, 57.6, 45, 38.5, 31.4,22.2, 20.4, 17.2, 14.1, 10.2, 9.1, 8.2, 5.6, 5.7, 2.9, 74.2,107.5,73.5,49.3,36.7,27.8,25.1,20.4,18.6,13.9,13.5,9.8,8.9,7.8,5.3,5,3.9,3.8,1.9};
 
@@ -918,7 +919,7 @@ double nuisFuncE_dual(const std::vector<double> &x, std::vector<double> &grad, v
                 double temp_sig=0,temp_bg=0,lambda=0,N=0, E_N_events=0,E_N_sig_events=0,E_N_bg_events= 0,E_sum = 0;
 
         int bin = 0;
-        for(bin=0;bin<2*EBINS;bin++)
+        for(bin=0;bin<EBINS;bin++)
                         {
                                 temp_sig = eGram[bin];
                                 temp_bg = (1.0+zeta_b)*eB[bin];
@@ -931,7 +932,20 @@ double nuisFuncE_dual(const std::vector<double> &x, std::vector<double> &grad, v
                                 E_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 
                         }
-        E_sum+= pow((zeta_b/sigma_zeta),2.0);
+        for(bin=EBINS;bin<2*EBINS;bin++)
+                        {
+                                temp_sig = eGram[bin];
+                                temp_bg = (1.0+zeta_b_NUBAR)*eB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = eO[bin]; 
+                                E_N_events += lambda;
+                                E_N_sig_events += temp_sig;
+                                E_N_bg_events += temp_bg;
+
+                                E_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+
+                        }
+        E_sum+= pow((zeta_b/sigma_zeta),2.0)+pow((zeta_b_NUBAR/sigma_zeta),2.0);
 
 return E_sum;
 }
@@ -947,7 +961,8 @@ double nuisFuncA_dual(const std::vector<double> &x, std::vector<double> &grad, v
         //if(sigma_zeta == 0){RunSigma =0;};
 
 
-        double zeta_b = x[0];
+        double zeta_b = x[0];        double zeta_b_NUBAR = x[1];
+
         
 	std::vector<double > aO = {22,34,43,41,60,87,90,139,237,429,10,13,16,20,24,36,41,70,94,263};
 	std::vector<double > aB  = {19.9,23.1,28.8,32.1,46.4,63.1,86.1,121,196.8,390,9.2,11.2,13.5,16,18.7,24.2,36,52.1,94.9,237.1};
@@ -956,7 +971,7 @@ double nuisFuncA_dual(const std::vector<double> &x, std::vector<double> &grad, v
         double temp_sig=0,temp_bg=0,lambda=0,N=0, A_N_events=0,A_N_sig_events=0,A_N_bg_events= 0,A_sum = 0;
         double sigma_s = 1.0;
         int bin = 0;
-        for(bin=0;bin<2*COSBINS;bin++)
+        for(bin=0;bin<COSBINS;bin++)
                         {
                                 temp_sig = sigma_s*cosGram[bin];
                                 temp_bg = (1.0+zeta_b)*aB[bin];
@@ -970,7 +985,22 @@ double nuisFuncA_dual(const std::vector<double> &x, std::vector<double> &grad, v
                                 A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
                 //              std::cout<<E_sum<<std::endl;
                         }
-        A_sum+= pow((zeta_b/sigma_zeta),2.0);
+        for(bin=COSBINS;bin<2*COSBINS;bin++)
+                        {
+                                temp_sig = sigma_s*cosGram[bin];
+                                temp_bg = (1.0+zeta_b_NUBAR)*aB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = aO[bin]; //MB has seen O[] events.
+                                
+                                A_N_events += lambda;
+                                A_N_sig_events += temp_sig;
+                                A_N_bg_events += temp_bg;
+                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+                                A_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+                //              std::cout<<E_sum<<std::endl;
+                        }
+ 
+        A_sum+= pow((zeta_b/sigma_zeta),2.0) +pow((zeta_b_NUBAR/sigma_zeta),2.0);
         //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
         //d->egram = postGram;
 
@@ -985,6 +1015,7 @@ double nuisFuncQE_dual(const std::vector<double> &x, std::vector<double> &grad, 
 
 
         double zeta_b = x[0];
+	double zeta_b_NUBAR=x[1];
 
 
         std::vector<double > qeO = {232,156,156,79,81,70,63,65,62,34,70};
@@ -993,7 +1024,7 @@ double nuisFuncQE_dual(const std::vector<double> &x, std::vector<double> &grad, 
         double temp_sig=0,temp_bg=0,lambda=0,N=0, QE_N_events=0,QE_N_sig_events=0,QE_N_bg_events= 0,QE_sum = 0;
         double sigma_s = 1.0;
         int bin = 0;
-        for(bin=0;bin<QEBINS;bin++)
+        for(bin=0;bin<QEBINS/2;bin++)
                         {
                                 temp_sig = sigma_s*qeGram[bin];
                                 temp_bg = (1.0+zeta_b)*qeB[bin];
@@ -1006,6 +1037,21 @@ double nuisFuncQE_dual(const std::vector<double> &x, std::vector<double> &grad, 
                         //      E_sum+= (lambda-N)*(lambda-N)/lambda;
                                 QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
                         }
+        for(bin=QEBINS/2;bin<2*QEBINS;bin++)
+                        {
+                                temp_sig = sigma_s*qeGram[bin];
+                                temp_bg = (1.0+zeta_b)*qeB[bin];
+                                lambda = temp_sig + temp_bg;
+                                N = qeO[bin]; //MB has seen O[] events.
+                                
+                                QE_N_events += lambda;
+                                QE_N_sig_events += temp_sig;
+                                QE_N_bg_events += temp_bg;
+                        //      E_sum+= (lambda-N)*(lambda-N)/lambda;
+                                QE_sum+= 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+                        }
+ 
+
         QE_sum+= pow((zeta_b/sigma_zeta),2.0);
         //std::cout<<std::setprecision(12)<<zeta_b<<"  "<<E_sum<<std::endl;
 
@@ -1016,13 +1062,13 @@ double nuisMarginalize_dual(std::vector<double > * bf_zeta_b, double * chi, std:
         nuisStruct ddata = {(*eVGram),SIGMAZETA};
 
 
-        nlopt::opt full(nlopt::LN_COBYLA,1);
+        nlopt::opt full(nlopt::LN_COBYLA,2);
         
         //full.set_maxeval(200000);
         full.set_xtol_abs(1e-5);
         full.set_lower_bounds(-1);
         full.set_upper_bounds(1);
-        std::vector<double > xtem = {0.01};
+        std::vector<double > xtem = {0.01,0.01};
         double ctem;
         if(whi==0){ 
                 full.set_min_objective(nuisFuncE_dual, &ddata);

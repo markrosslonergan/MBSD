@@ -24,7 +24,7 @@ double boundBASEzp(double mzp);
 double boundPS191u(double ms);
 double boundNOMADt(double ms);
 double boundBABARzp( double mzp);
-
+double boundInvisiblezp(double mzp);
 double boundTRIDENT(double mzp);
 
 bool boundPiZeroInvisibleDecay(double ms, double mzp, double up, double ud, double chi);

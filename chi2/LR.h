@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-#define NUMEVENTS 40000
+#define NUMEVENTS 60000
 #define NUM_EVENT_OBS 7 //Number of obervables stored for each event. E_sum/Th_sum/AngSep/E_sterile/E_high/E_low/Th_high
 
 #define EBINS 19

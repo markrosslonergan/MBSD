@@ -115,7 +115,7 @@ double getEvents_NU(CL_input input, double events[][NUM_EVENT_OBS])
 	char s[100];
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	//char filename[500] = "../decay/data/\0";
-		char  filename[500] = "../decay/data12oct/\0";
+		char  filename[500] = "../decay/data28oct/\0";
 	
 //	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
 
@@ -125,7 +125,7 @@ double getEvents_NU(CL_input input, double events[][NUM_EVENT_OBS])
 
     	if (!ptr_file)
        	{			
-		printf("ERROR LOADING MC EVENTS 1\n");
+		printf("ERROR LOADING MC EVENTS 1 getEvents_NU\n");
 		exit(1);
 	}
 
@@ -186,7 +186,7 @@ double getEvents_NUBAR(CL_input input, double events[][NUM_EVENT_OBS])
 	char s[100];
 	sprintf(s,"%.3lf_%.3lf.dat", mS, mZprime);
 	//char filename[500] = "../decay/data/\0";
-		char  filename[500] = "../decay/data12oct/anti/\0";
+		char  filename[500] = "../decay/data28oct/anti/\0";
 	
 //	char filename[500] = "/scratch/ross/git/MBSD/decay_new/data/\0";
 
@@ -196,7 +196,7 @@ double getEvents_NUBAR(CL_input input, double events[][NUM_EVENT_OBS])
 
     	if (!ptr_file)
        	{			
-		printf("ERROR LOADING MC EVENTS 1\n");
+		printf("ERROR LOADING MC EVENTS 1 getEvents_NUBAR\n");
 		exit(1);
 	}
 
@@ -524,7 +524,7 @@ BF_RESULT * mcmc_stats_fit_spectra_indiv(CL_input in, double cutEfficiency, doub
 				sum = sum + pow((zeta_b/sigma_zeta),2.0); 
 				
 				if(abs(sum-bf_chi)>1e-3){
-					std::cout<<"# Error: sum != bf_chi in mcmc. Sum : "<<sum<<" bf_chi: "<<bf_chi<<std::endl;
+					std::cout<<"#Error: sum != bf_chi in mcmc. Sum : "<<sum<<" bf_chi: "<<bf_chi<<std::endl;
 				}
 		}
 
@@ -687,6 +687,7 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 
 
 	double zeta_b =0.0;
+	double zeta_b_NUBAR = 0.0;
 	double sigma_s = 1.0;
 	double sigma_zeta = in.Sigma_Zeta;
 	
@@ -727,8 +728,9 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 	}
 
 	std::vector<double > best_spectrum = spec_obs;
-	double best_zeta_b = 0.0;
+	double best_zeta_b = 0.0;	double best_zeta_b_NUBAR = 0.0;
 
+	
 	double tmp_tot=0.0;
 	double logchiU,chiU,contEfficiency;
 	double best_contEfficiency=1e50;
@@ -756,9 +758,8 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 // ########################   Calculate LogLiki (Dchi^2) for Background only with SYtematics ################
 
         std::vector<double > Zeros(BINS, 0.0);
-        std::vector<double > BF_bkg_only_zeta_b = {0};
+        std::vector<double > BF_bkg_only_zeta_b = {0.0,0.0};
         double BF_bkg_only_chi = 10000;
-	
 	
         nuisMarginalize_dual(& BF_bkg_only_zeta_b, & BF_bkg_only_chi, &Zeros, which_var, sigma_zeta);
         std::cout<<"# which: "<<which_var<<" ,sigma_zeta Bf: "<< BF_bkg_only_zeta_b[0]<<" BF Chi: "<<BF_bkg_only_chi<<std::endl;
@@ -767,11 +768,11 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 
 	int tORt = 3 ;
 	int mcCount=0; 	int mcRawCount = 0; int stuckCount=0;
-	int mcNumRun = 1000; 
+	int mcNumRun = 3000; //1000 
 	int endStart = 0;
-	int endEnd = 2000; 	
+	int endEnd = 6000; 	//2000
 	int mcMaxStuck = -1;
-	int mcRawMax = 20000; 
+	int mcRawMax = 30000; //20000
 	double mcSumLast=1e10;
 	double mcTemp=0.4;
 	double mcProb=0.0;
@@ -784,10 +785,11 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 	std::vector<double > mcS (tORt,4); 	int mcNumVar = mcS.size();
 	std::vector<double > mcMin (tORt,-5);
 	std::vector<double > mcBestVar (tORt,99);
-	double mm = -0.0;
+	double mm = -0.6505; // a lowest of Ut4^2=0.05 
+	mcMin[2]=-3;
 	std::vector<double > mcMax (tORt,mm);
 		mcMax[0]= std::min(mm,log(boundBASEu(temp_mS))/log(10.0));
-		mcMax[1]= std::min(0.0,log(boundBASEzp(temp_mZprime))/log(10.0));
+		mcMax[1]= std::min(-1.0,log(boundBASEzp(temp_mZprime))/log(10.0));
 		//mcMax[2]= log(boundBASEu(temp_mS))/log(10.0);
 	std::vector<double > mcVarLast = mcMax;
 	for(int i=0; i< mcNumVar; i++) 
@@ -801,6 +803,10 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 	{
        		mcRawCount++;
 		sum=0.0;
+		
+		//std::cout<<mcRawCount<<" ";
+		//mcPrintVar(mcTempVar);	
+		//std::cout<<"  "<<mcSumLast<<std::endl;
 
 		// Initialise T = 0.0 end run.
 		if((mcCount == mcNumRun-1 || mcRawCount == mcRawMax-endEnd) && best < 0.99*BF_bkg_only_chi){
@@ -859,6 +865,7 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 			VGram.assign(Gram, Gram+BINS);
 		        nuisMarginalize_dual(&bf_zeta_b, &bf_chi, &VGram,which_var,sigma_zeta);
 		        zeta_b = bf_zeta_b[0];
+			zeta_b_NUBAR = bf_zeta_b[1];
 /*			for(int i =0;i<BINS;i++){
 				std::cout<<zeta_b<<" "<<VGram[i]<<" "<<Gram[i]<<std::endl;
 			}
@@ -875,7 +882,7 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 			
 			if(sum!=0.0){ std::cout<<"# ERROR: Sum is not Zero: "<<sum<<std::endl;}
 
-				for(bin=0;bin<BINS;bin++)
+				for(bin=0;bin<BINS/2;bin++)
 				{
 					temp_sig = Gram[bin];
 					temp_bg = (1.0+zeta_b)*spec_bkg[bin];
@@ -887,7 +894,19 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 					N_bg_events += temp_bg;
 					sum= sum + 2.0*(lambda-N) + 2.0*N*log(N/lambda);
 				}
-				sum = sum + pow((zeta_b/sigma_zeta),2.0); 
+				for(bin=BINS/2;bin<BINS;bin++)
+				{
+					temp_sig = Gram[bin];
+					temp_bg = (1.0+zeta_b_NUBAR)*spec_bkg[bin];
+					lambda = temp_sig + temp_bg;
+					N = spec_obs[bin]; 
+				
+					N_events += lambda;
+					N_sig_events += temp_sig;
+					N_bg_events += temp_bg;
+					sum= sum + 2.0*(lambda-N) + 2.0*N*log(N/lambda);
+				}
+				sum = sum + pow((zeta_b/sigma_zeta),2.0)+pow((zeta_b_NUBAR/sigma_zeta),2.0); 
 				
 				if(abs(sum-bf_chi)>1e-3){
 					std::cout<<"# Error: sum != bf_chi in mcmc. Sum : "<<sum<<" bf_chi: "<<bf_chi<<std::endl;
@@ -903,6 +922,7 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 			best_N_bg_events = N_bg_events;
 			best_spectrum = VGram;
 			best_zeta_b = zeta_b;
+			best_zeta_b_NUBAR = zeta_b_NUBAR;
 			for(int i=0; i < mcNumVar;i++){ 
 				mcBestVar[i] = mcTempVar[i];
 			}
@@ -975,11 +995,11 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 
 
 }//End MCMC loop
-	double decaywidth=Gsterile2vvv(mcBestVar[0],mcBestVar[2],mcBestVar[1],temp_mS,temp_mZprime);
+	double decaywidth=Gsterile2vvv(pow(10,mcBestVar[0]),pow(10,mcBestVar[2]),pow(10,mcBestVar[1]),temp_mS,temp_mZprime);
 	double valGoF1=GoF1(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
 	//double valGoF2=GoF2(best_spectrum,spec_obs,spec_bkg,best_zeta_b);
 
-	std::cout<<"# From Mark: "<<getTotalNumEvents(in)<<"; Variable:  "<<NAMES[which_var]<<";  "<<best_N_events<<" = ( "<<best_N_sig_events<<" + "<<best_N_bg_events<<" )"<<std::endl;
+	std::cout<<"# From Mark: nu"<<getTotalNumEvents_NU(in)<<" nubar: "<<getTotalNumEvents_NUBAR(in)<<"; Variable:  "<<NAMES[which_var]<<";  "<<best_N_events<<" = ( "<<best_N_sig_events<<" + "<<best_N_bg_events<<" )"<<std::endl;
 	std::cout<<"# Decay Related Checks: Gtotal (GeV): "<<decaywidth<<" 1/Gtotal (m): "<<G2M(pow(decaywidth,-1))<<" 1/Gtotal (s): "<<invG2S(pow(decaywidth,-1))<<std::endl;
        	std::cout<<"# GoF tests. GoF1: "<<valGoF1<<" GoF1/nDoF: "<<valGoF1/spec_obs.size()<<" pVal1: "<<pval(valGoF1,spec_obs.size())<<" GoF2: "<<pow(best_N_events - OBSEVENTS ,2)/OBSEVENTS<<std::endl;
 	std::cout<<"# bf spectrum: ";
@@ -988,7 +1008,7 @@ BF_RESULT * mcmc_stats_dual(CL_input in, double cutEfficiency_NU, double cutEffi
 
 	std::cout<<temp_mS<<" "<<temp_mZprime<<" "<<BF_bkg_only_chi-best<<" ";
 	mcPrintVar(mcBestVar);
-	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency_NU<<" "<<best_zeta_b<<std::endl;
+	std::cout<<" "<<best_contEfficiency<<" "<<cutEfficiency_NU<<" "<<best_zeta_b<<" "<<best_zeta_b_NUBAR<<std::endl;
 
 
 gsl_rng_free(r);
@@ -1343,12 +1363,12 @@ double spectra_indiv(CL_input in, double Up, double Ud, double Chi)
 	}
 
         std::vector<double > VGram(Gram, Gram + BINS);
-	std::vector<double > zeta_b = {0};  
+	std::vector<double > zeta_b = {0,0};  
         double bf_chi = 10000; 
 
 	//	std::cout<<" whichvar: "<<which_var<<" sigma_eta: "<<sigma_zeta<<" finalscale: "<<finalScale<<" cutEfficiency "<<cutEfficiency<<std::endl;
 	std::vector<double > Zeros(EBINS, 0.0);
-        std::vector<double > bkg_only_zeta_b = {0};
+        std::vector<double > bkg_only_zeta_b = {0,0};
         double bkg_only_chi = 10000;
         nuisMarginalize(&bkg_only_zeta_b, &bkg_only_chi, &Zeros, which_var, sigma_zeta,pos_selector);
 
@@ -1411,7 +1431,7 @@ int main(int argc, char * argv[])
        
       		case 'R':
         		in.eFloor = 0.02; //100 MeV
-        		in.eRatio = 0.1; // Lowest is less than 10% of Highest
+        		in.eRatio = 0.2; // Lowest is less than 10% of Highest now 20%
         		break;
 		case 'E':
 			modeFlag = 1;
@@ -1508,7 +1528,7 @@ int main(int argc, char * argv[])
 	//Set up an empty event array and populate it from the decay files.
 	static double events[NUMEVENTS][NUM_EVENT_OBS];
 	wipeEventArray(events); //wipe the array.
-	getEvents(in,events); // populates event array. 
+	getEvents_NU(in,events); // populates event array. 
 
 	static double events_NU[NUMEVENTS][NUM_EVENT_OBS];
 	wipeEventArray(events_NU);
@@ -1535,7 +1555,7 @@ int main(int argc, char * argv[])
 		double cosGram[COSBINS];
 		double qeGram[QEBINS];
 		double contEfficiency;
-		double finalScale = getTotalNumEvents(in);
+		double finalScale = getTotalNumEvents_NU(in);
 	
 		std::vector<double> bfspectrum;
 		double bfzeta=0;
