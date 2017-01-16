@@ -1,0 +1,7 @@
+Usage.
+
+To generate 1 MC file 
+./boone.out --runone NUMEVENNTS -z MZ -s MS 
+
+To generate a grid of MC files
+./boone.out --batch MZMIN MZMAX MZSTEP MSMIN MSMAX MSSTEP NUMEVENTS
